@@ -57,8 +57,10 @@ Use Discord, Telegram, or both. With both, a request shows up in both places and
 |---|---|
 | ![Approved in Discord](docs/discord-answered.png) | ![Background session request in the main channel](docs/discord-spawn.png) |
 | A permission and a question answered from Discord; only you see the confirmation | The Boss asks before starting a background session |
-| ![Bot profile with its status](docs/discord-bot-status.png) | ![Settings panel](docs/settings-panel.png) |
-| The bot shows how many sessions are working | The local settings panel |
+| ![Your Discord profile while sessions work](docs/discord-rich-presence.png) | ![Settings panel](docs/settings-panel.png) |
+| Your Discord profile shows how many sessions are working | The local settings panel, with an English / Русский switch |
+| ![A session topic in Telegram](docs/telegram-session.png) | ![Answered from Telegram](docs/telegram-answered.png) |
+| The same session in a Telegram topic | Allowed and answered from Telegram, then a reply |
 
 ## Install
 
