@@ -1,0 +1,4 @@
+interface:
+  display_name: "Telegram Action Notifier"
+  short_description: "Alert via Telegram when Codex needs you"
+  default_prompt: "Notify me in Telegram whenever this task needs my approval or action."

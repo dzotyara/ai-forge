@@ -1,0 +1,110 @@
+{
+  "description": "Telegram bridge for Codex and Claude Code: approval requests, blocking actions, per-session topics and (Claude Code) replies from Telegram.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact|fork",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT||process.env.PLUGIN_ROOT,'skills','telegram-action-notifier','scripts','telegram-action-notifier.mjs')).href).then(m=>m.run())\"",
+            "timeout": 3,
+            "statusMessage": "Loading Telegram action marker"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT||process.env.PLUGIN_ROOT,'skills','telegram-action-notifier','scripts','telegram-action-notifier.mjs')).href).then(m=>m.run())\"",
+            "async": true,
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT||process.env.PLUGIN_ROOT,'skills','telegram-action-notifier','scripts','telegram-action-notifier.mjs')).href).then(m=>m.run())\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT||process.env.PLUGIN_ROOT,'skills','telegram-action-notifier','scripts','telegram-action-notifier.mjs')).href).then(m=>m.run())\"",
+            "timeout": 43200,
+            "statusMessage": "Waiting for a Telegram approval"
+          }
+        ]
+      }
+    ],
+    "PermissionDenied": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT||process.env.PLUGIN_ROOT,'skills','telegram-action-notifier','scripts','telegram-action-notifier.mjs')).href).then(m=>m.run())\"",
+            "timeout": 43200,
+            "statusMessage": "Waiting for a Telegram approval"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT||process.env.PLUGIN_ROOT,'skills','telegram-action-notifier','scripts','telegram-action-notifier.mjs')).href).then(m=>m.run())\"",
+            "async": true,
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT||process.env.PLUGIN_ROOT,'skills','telegram-action-notifier','scripts','telegram-action-notifier.mjs')).href).then(m=>m.run())\"",
+            "timeout": 20,
+            "statusMessage": "Posting the turn to Telegram"
+          },
+          {
+            "type": "command",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT||process.env.PLUGIN_ROOT,'skills','telegram-action-notifier','scripts','telegram-action-notifier.mjs')).href).then(m=>m.run(['wait-reply']))\"",
+            "asyncRewake": true,
+            "timeout": 43200
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT||process.env.PLUGIN_ROOT,'skills','telegram-action-notifier','scripts','telegram-action-notifier.mjs')).href).then(m=>m.run())\"",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

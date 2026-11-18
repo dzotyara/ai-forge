@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>Уведомления — настройки</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f5f5f7; --card: #ffffff; --text: #1d1d1f; --muted: #6e6e73; --line: #e3e3e8;
+    --accent: #0a84ff; --ok: #248a3d; --warn: #b25000; --bad: #d70015; --field: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #161618; --card: #1f1f22; --text: #f2f2f7; --muted: #98989f; --line: #34343a;
+      --accent: #409cff; --ok: #32d74b; --warn: #ff9f0a; --bad: #ff453a; --field: #2a2a2e;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+    font: 15px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 26px; letter-spacing: -0.02em; margin: 0 0 4px; }
+  .lead { color: var(--muted); margin: 0 0 24px; }
+  section { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
+  h2 { font-size: 17px; margin: 0 0 14px; letter-spacing: -0.01em; }
+  .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 10px 0; border-top: 1px solid var(--line); }
+  .row:first-of-type { border-top: 0; padding-top: 0; }
+  .row > label:first-child, .row > .label { flex: 0 0 200px; color: var(--muted); }
+  .grow { flex: 1 1 220px; min-width: 0; }
+  input[type=text], input[type=password], input[type=number], input[type=time], select {
+    font: inherit; color: var(--text); background: var(--field); border: 1px solid var(--line);
+    border-radius: 8px; padding: 7px 10px; }
+  input[type=number] { width: 96px; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  input[type=checkbox] { accent-color: var(--accent); width: 18px; height: 18px; vertical-align: -3px; }
+  button { font: inherit; border: 1px solid var(--line); background: var(--field); color: var(--text);
+    border-radius: 8px; padding: 7px 14px; cursor: pointer; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button.danger { color: var(--bad); }
+  button.link { border: 0; background: none; color: var(--accent); padding: 0 4px; }
+  button:disabled { opacity: .5; cursor: default; }
+  .muted { color: var(--muted); }
+  .small { font-size: 13px; }
+  .ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+  .note { font-size: 13px; color: var(--muted); margin: 12px 0 0; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .seg button { border: 0; border-radius: 0; border-left: 1px solid var(--line); }
+  .seg button:first-child { border-left: 0; }
+  .seg button[aria-pressed=true] { background: var(--accent); color: #fff; }
+  table { width: 100%; border-collapse: collapse; }
+  td, th { text-align: left; padding: 9px 6px; border-top: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 500; font-size: 13px; border-top: 0; }
+  td.actions { white-space: nowrap; text-align: right; }
+  .pill { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+  .pill.waiting { color: var(--accent); border-color: var(--accent); }
+  .pill.active { color: var(--ok); border-color: var(--ok); }
+  #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--text); color: var(--bg);
+    padding: 9px 16px; border-radius: 10px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  #toast.show { opacity: 1; }
+  #offline { display: none; background: var(--bad); color: #fff; padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Уведомления</h1>
+  <p class="lead">AI Forge: уведомления из Claude Code и Codex в Telegram и Discord. Нравится? <a href="https://github.com/dzotyara/ai-forge" target="_blank" rel="noopener">⭐ Поставьте звезду на GitHub</a></p>
+  <div id="offline">Панель закрыта или недоступна. Запустите её заново командой <code>node configure.mjs --ui</code>.</div>
+
+  <section aria-labelledby="h-bot">
+    <h2 id="h-bot">Telegram</h2>
+    <div class="row">
+      <label for="token">Токен</label>
+      <div class="grow">
+        <input id="token" type="password" autocomplete="off" spellcheck="false" placeholder="Вставьте новый токен из @BotFather" style="width:100%">
+        <div class="small muted" id="token-hint"></div>
+      </div>
+      <button id="token-toggle" type="button">Показать</button>
+      <button id="token-save" class="primary" type="button">Проверить</button>
+    </div>
+    <div class="row"><span class="label">Бот</span><span class="grow" id="bot-status">—</span></div>
+    <div class="row">
+      <span class="label">Куда писать</span>
+      <span class="grow" id="chat-status">—</span>
+      <button id="chat-groups" type="button">Найти группы</button>
+      <button id="chat-edit" type="button">Изменить</button>
+    </div>
+    <div class="row">
+      <span class="label">Владелец</span>
+      <span class="grow" id="owner-status">—</span>
+      <button id="chat-detect" type="button">Найти заново</button>
+    </div>
+    <div class="row"><span class="label">Темы для сессий</span><span class="grow" id="topics-status">—</span></div>
+    <div class="row"><span class="label">Босс</span><span class="grow" id="boss-status">—</span></div>
+    <p class="note">Токен хранится только на этом Mac в файле <code id="config-path"></code> с доступом только для вашей учётной записи. Панель никогда не показывает его целиком.</p>
+  </section>
+
+  <section aria-labelledby="h-discord">
+    <h2 id="h-discord">Discord</h2>
+    <div class="row"><label for="discord-token">Токен бота</label>
+      <input id="discord-token" class="grow" type="password" autocomplete="off" spellcheck="false"></div>
+    <div class="row"><label for="discord-guild">ID сервера</label>
+      <input id="discord-guild" class="grow" type="text" inputmode="numeric" placeholder="Можно оставить пустым, если у бота один сервер"></div>
+    <div class="row"><label for="discord-owner">Ваш ID пользователя</label>
+      <input id="discord-owner" class="grow" type="text" inputmode="numeric"></div>
+    <div class="row"><span class="label" id="discord-status"></span>
+      <button id="discord-save" type="button">Подключить Discord</button></div>
+    <p class="note">Бот создаст категорию AI Forge, общий канал и отдельные каналы для сессий.</p>
+  </section>
+
+  <section aria-labelledby="h-notify">
+    <h2 id="h-notify">Уведомления</h2>
+    <div class="row"><label for="notificationTarget">Куда отправлять</label>
+      <select id="notificationTarget" class="grow">
+        <option value="telegram">Telegram</option>
+        <option value="discord">Discord</option>
+        <option value="both">Telegram и Discord</option>
+      </select></div>
+    <div class="row">
+      <span class="label">Когда писать</span>
+      <div class="grow">
+        <div class="seg" role="group" aria-label="Режим доставки" id="mode">
+          <button type="button" data-mode="always">Всегда</button>
+          <button type="button" data-mode="smart">Умно</button>
+          <button type="button" data-mode="never">Никогда</button>
+        </div>
+        <div class="small muted" id="mode-hint"></div>
+        <div class="small" id="override"></div>
+      </div>
+    </div>
+    <div class="row">
+      <label for="presenceIdleSec">Считать, что я отошёл, через</label>
+      <span class="grow"><input id="presenceIdleSec" type="number" min="30" max="3600" step="10"> с без действий
+        <span class="small muted" id="presence-now"></span></span>
+    </div>
+    <div class="row">
+      <label for="approvalGraceSec">Запрос разрешения: ждать в приложении</label>
+      <span class="grow"><input id="approvalGraceSec" type="number" min="0" max="3600" step="10"> с, потом написать в Telegram</span>
+    </div>
+    <div class="row">
+      <label for="actionGraceSec">Вопрос от агента: ждать в приложении</label>
+      <span class="grow"><input id="actionGraceSec" type="number" min="0" max="3600" step="10"> с, потом написать в Telegram</span>
+    </div>
+    <div class="row">
+      <label for="notify">Что присылать</label>
+      <select id="notify" class="grow">
+        <option value="all">Каждый ответ агента (тихо) и все запросы</option>
+        <option value="action">Только когда нужно моё действие</option>
+      </select>
+    </div>
+    <div class="row">
+      <label for="approvalWaitSec">Кнопки «Разрешить/Отклонить»</label>
+      <div class="grow">
+        <input id="approvalWaitSec" type="range" min="0" max="300" step="10">
+        <div class="small muted" id="approvalWaitSec-label"></div>
+      </div>
+    </div>
+    <div class="row">
+      <label for="chatReplies">Ответы из Telegram</label>
+      <label class="grow"><input id="chatReplies" type="checkbox"> Мои сообщения в теме сессии передаются в Claude Code</label>
+    </div>
+    <div class="row">
+      <label for="quiet-on">Тихие часы</label>
+      <span class="grow">
+        <label><input id="quiet-on" type="checkbox"> без звука с</label>
+        <input id="quiet-from" type="time" value="23:00"> до <input id="quiet-to" type="time" value="08:00">
+      </span>
+    </div>
+    <div class="row">
+      <label for="spawnConfirm">Запуск фоновых сессий</label>
+      <select id="spawnConfirm" class="grow">
+        <option value="telegram">Спрашивать меня в Telegram (кнопки «Запустить / Отмена»)</option>
+        <option value="never">Запускать сразу, без подтверждения</option>
+      </select>
+    </div>
+    <div class="row">
+      <label for="workerPermissions">Разрешения в фоновых сессиях</label>
+      <select id="workerPermissions" class="grow">
+        <option value="telegram">Рискованные действия — кнопками в Telegram</option>
+        <option value="auto">Режим auto: не спрашивать, решает классификатор</option>
+      </select>
+    </div>
+    <div class="row"><span class="label"></span><button id="settings-save" class="primary" type="button">Сохранить</button></div>
+  </section>
+
+  <section aria-labelledby="h-sessions">
+    <h2 id="h-sessions">Сессии</h2>
+    <table>
+      <thead><tr><th>Сессия</th><th>Статус</th><th></th></tr></thead>
+      <tbody id="sessions"></tbody>
+    </table>
+    <p class="note" id="sessions-empty" hidden>Пока ни одна сессия ничего не отправляла.</p>
+  </section>
+
+  <section aria-labelledby="h-daemon">
+    <h2 id="h-daemon">Служба</h2>
+    <div class="row"><span class="label">Фоновая служба</span><span class="grow" id="daemon-status">—</span></div>
+    <div class="row">
+      <span class="label"></span>
+      <span class="grow">
+        <button id="test" type="button">Тестовое сообщение</button>
+        <button id="restart" type="button">Перезапустить</button>
+        <button id="stop" class="danger" type="button">Остановить</button>
+      </span>
+    </div>
+    <p class="note">Служба читает сообщения боту и нажатия кнопок. Она запускается сама, когда сессии нужен Telegram, и выключается через 2 часа без дела.</p>
+  </section>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+const params = new URLSearchParams(location.search);
+const KEY = params.get("k") || sessionStorage.getItem("panel-key") || "";
+sessionStorage.setItem("panel-key", KEY);
+history.replaceState(null, "", "/"); // keep the secret out of the address bar
+const $ = (id) => document.getElementById(id);
+let state = null;
+
+function toast(text) {
+  const el = $("toast");
+  el.textContent = text;
+  el.classList.add("show");
+  clearTimeout(toast.t);
+  toast.t = setTimeout(() => el.classList.remove("show"), 3200);
+}
+
+async function api(path, body, { poll = false } = {}) {
+  const headers = { "x-panel-key": KEY };
+  if (poll) headers["x-poll"] = "1";
+  if (body !== undefined) headers["content-type"] = "application/json";
+  let res;
+  try {
+    res = await fetch(path, { method: body === undefined ? "GET" : "POST", headers, body: body === undefined ? undefined : JSON.stringify(body) });
+  } catch {
+    $("offline").style.display = "block";
+    throw new Error("offline");
+  }
+  $("offline").style.display = res.status === 403 ? "block" : "none";
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || "Ошибка " + res.status);
+  return data;
+}
+
+const ago = (ms) => {
+  if (!ms) return "никогда";
+  const s = Math.round((Date.now() - ms) / 1000);
+  if (s < 60) return s + " с назад";
+  if (s < 3600) return Math.round(s / 60) + " мин назад";
+  return Math.round(s / 3600) + " ч назад";
+};
+const clock = (ms) => new Date(ms).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
+const STATUS = { waiting: "ждёт ответа", active: "активна", ended: "завершена", "notify-only": "только уведомления (Codex)" };
+const MODE_HINT = {
+  always: "Каждый запрос сразу уходит в Telegram, даже если вы за компьютером.",
+  smart: "Пока вы за компьютером, Telegram молчит. Пишет, если вы отошли или не ответили в приложении вовремя.",
+  never: "Ничего не отправлять в Telegram.",
+};
+let mode = "smart";
+
+function waitLabel(value) {
+  return Number(value) === 0
+    ? "Выключены: только уведомление, решаете в приложении"
+    : "Ждать нажатия до " + value + " с, пока вас нет за компьютером";
+}
+
+function setMode(value) {
+  mode = value;
+  $("chat-groups").onclick = async () => {
+  $("chat-groups").disabled = true;
+  await act(async () => {
+    const r = await api("/api/chat/groups", {});
+    if (!r.groups.length) return toast("Групп не нашлось. Напишите что-нибудь в группе и попробуйте ещё раз");
+    const list = r.groups.map((g) => g.id + "  " + g.label).join("\n");
+    const id = prompt("Группы, где есть бот. Введите ID нужной:\n" + list, r.groups.length === 1 ? r.groups[0].id : "");
+    if (id) { const res = await api("/api/chat", { chatId: id.trim() }); toast(res.ownerKnown ? "Группа сохранена" : "Группа сохранена, но владелец не задан"); }
+  });
+  $("chat-groups").disabled = false;
+};
+$("chat-edit").onclick = () => {
+  const id = prompt("ID чата или группы (у групп он начинается с -100):", (state && state.chat.id) || "");
+  if (id) act(() => api("/api/chat", { chatId: id.trim() }), "Чат сохранён");
+};
+for (const b of $("mode").querySelectorAll("button")) b.setAttribute("aria-pressed", String(b.dataset.mode === value));
+  $("mode-hint").textContent = MODE_HINT[value] || "";
+}
+
+function render(s, { keepForm = false } = {}) {
+  state = s;
+  const bot = s.bot;
+  $("config-path").textContent = s.configPath;
+  $("token-hint").textContent = bot.configured ? "Сейчас: " + bot.tokenHint + (bot.fromEnv ? " (из переменной окружения)" : "") : "Токен ещё не задан";
+  $("bot-status").innerHTML = "";
+  const status = document.createElement("span");
+  if (!bot.configured) { status.textContent = "не подключён"; status.className = "warn"; }
+  else if (bot.ok) { status.textContent = "@" + bot.username + " — на связи"; status.className = "ok"; }
+  else { status.textContent = "ошибка: " + bot.error; status.className = "bad"; }
+  $("bot-status").append(status);
+  const chat = s.chat;
+  $("chat-status").textContent = !chat.id
+    ? "не выбран — отправьте боту /start и нажмите «Найти заново»"
+    : chat.kind === "group"
+      ? "группа «" + (chat.title || "без названия") + "» (ID " + chat.id + ")"
+      : "личный чат с ботом (ID " + chat.id + ")";
+  $("owner-status").textContent = chat.ownerUserId
+    ? "ID " + chat.ownerUserId + " — бот слушается только этого человека"
+    : "не задан — в группе бот никого не слушает. Отправьте боту /start в личку и нажмите «Найти заново»";
+  $("owner-status").className = chat.ownerUserId ? "grow" : "grow warn";
+  $("topics-status").innerHTML = "";
+  const topics = document.createElement("span");
+  if (!s.topics) topics.textContent = "—";
+  else { topics.textContent = s.topics.text; topics.className = s.topics.enabled ? "ok" : "warn"; }
+  $("topics-status").append(topics);
+  $("boss-status").textContent = s.boss
+    ? "«" + s.boss.title + "» — сообщения в General идут ему"
+    : "не запущен. Назовите сессию «Босс» в приложении, и она будет отвечать в General";
+
+  $("discord-status").textContent = s.discord.configured ? "Бот настроен" : "Бот не настроен";
+  if (!keepForm) {
+    const st = s.settings;
+    $("notificationTarget").value = st.notificationTarget;
+    $("discord-guild").value = s.discord.guild;
+    $("discord-owner").value = s.discord.owner;
+    setMode(st.deliveryMode);
+    $("notify").value = st.notify;
+    $("approvalWaitSec").value = st.approvalWaitSec;
+    $("approvalWaitSec-label").textContent = waitLabel(st.approvalWaitSec);
+    $("chatReplies").checked = st.chatReplies;
+    $("spawnConfirm").value = st.spawnConfirm;
+    $("workerPermissions").value = st.workerPermissions;
+    $("presenceIdleSec").value = st.presenceIdleSec;
+    $("approvalGraceSec").value = st.approvalGraceSec;
+    $("actionGraceSec").value = st.actionGraceSec;
+    $("quiet-on").checked = Boolean(st.quietHours);
+    if (st.quietHours) { $("quiet-from").value = st.quietHours.from; $("quiet-to").value = st.quietHours.to; }
+  }
+  $("presence-now").textContent = "Сейчас: " + s.presence.text;
+  const o = $("override");
+  o.innerHTML = "";
+  const parts = [];
+  if (s.mode.overridden) parts.push("из Telegram включён режим «" + ({ always: "всегда", smart: "умно", never: "никогда" })[s.mode.mode] + "» до " + clock(s.mode.overrideUntil));
+  if (s.mode.muteUntil) parts.push("пауза до " + clock(s.mode.muteUntil));
+  if (parts.length) {
+    o.append("Сейчас " + parts.join(", ") + ". ");
+    const reset = document.createElement("button");
+    reset.className = "link"; reset.type = "button"; reset.textContent = "Сбросить";
+    reset.onclick = () => act(() => api("/api/override/clear", {}), "Временный режим сброшен");
+    o.append(reset);
+  }
+
+  const tbody = $("sessions");
+  tbody.innerHTML = "";
+  $("sessions-empty").hidden = s.sessions.length > 0;
+  for (const it of s.sessions) {
+    const tr = document.createElement("tr");
+    const name = document.createElement("td");
+    const title = document.createElement("div");
+    title.textContent = it.title + (it.isBoss ? " · Босс" : "");
+    const meta = document.createElement("div");
+    meta.className = "small muted";
+    meta.textContent = [it.project, it.host, it.lastPostAt ? "писала " + ago(it.lastPostAt) : ""].filter(Boolean).join(" · ");
+    name.append(title, meta);
+    const st = document.createElement("td");
+    const pill = document.createElement("span");
+    pill.className = "pill " + it.status;
+    pill.textContent = STATUS[it.status] || it.status;
+    st.append(pill);
+    if (it.muted) { const m = document.createElement("div"); m.className = "small warn"; m.textContent = "заглушена"; st.append(m); }
+    const actions = document.createElement("td");
+    actions.className = "actions";
+    const mute = document.createElement("button");
+    mute.className = "link"; mute.type = "button";
+    mute.textContent = it.muted ? "включить" : "заглушить";
+    mute.onclick = () => act(() => api("/api/sessions/mute", { id: it.id, muted: !it.muted }), it.muted ? "Сессия снова пишет в Telegram" : "Сессия заглушена");
+    const forget = document.createElement("button");
+    forget.className = "link danger"; forget.type = "button"; forget.textContent = "забыть";
+    forget.onclick = () => {
+      if (!confirm("Забыть сессию «" + it.title + "»? Она перестанет получать ответы из Telegram.")) return;
+      const deleteTopic = it.hasTopic && confirm("Удалить темы сессии в Telegram и Discord вместе с перепиской? Это нельзя отменить.");
+      act(() => api("/api/sessions/forget", { id: it.id, deleteTopic }), deleteTopic ? "Сессия и тема удалены" : "Сессия забыта");
+    };
+    actions.append(mute, forget);
+    tr.append(name, st, actions);
+    tbody.append(tr);
+  }
+
+  const d = s.daemon;
+  $("daemon-status").innerHTML = "";
+  const ds = document.createElement("span");
+  if (d.running) { ds.className = "ok"; ds.textContent = "работает (PID " + d.pid + "), последний опрос " + ago(d.lastPollAt); }
+  else { ds.className = "muted"; ds.textContent = "остановлена" + (d.lastPollAt ? ", последний опрос " + ago(d.lastPollAt) : ""); }
+  $("daemon-status").append(ds);
+}
+
+async function refresh(opts = {}) {
+  render(await api("/api/state", undefined, { poll: opts.poll }), opts);
+}
+
+async function act(fn, done) {
+  try {
+    await fn();
+    if (done) toast(done);
+  } catch (error) {
+    if (error.message !== "offline") toast(error.message);
+  }
+  await refresh({ keepForm: true }).catch(() => {});
+}
+
+$("token-toggle").onclick = () => {
+  const input = $("token");
+  const show = input.type === "password";
+  input.type = show ? "text" : "password";
+  $("token-toggle").textContent = show ? "Скрыть" : "Показать";
+};
+$("token-save").onclick = async () => {
+  const token = $("token").value.trim();
+  if (!token) return toast("Вставьте токен");
+  $("token-save").disabled = true;
+  await act(async () => {
+    const r = await api("/api/token", { token });
+    $("token").value = "";
+    toast("Подключён @" + r.username);
+  });
+  $("token-save").disabled = false;
+};
+$("chat-detect").onclick = async () => {
+  $("chat-detect").disabled = true;
+  toast("Отправьте боту /start — жду до 25 секунд");
+  await act(async () => {
+    const r = await api("/api/chat/detect", {});
+    if (r.saved) return toast(r.as === "owner" ? "Владелец найден и сохранён" : "Чат найден и сохранён");
+    if (!r.chats.length) return toast("Сообщений не пришло. Отправьте /start и попробуйте ещё раз");
+    const list = r.chats.map((c) => c.id + "  " + c.label).join("\n");
+    const id = prompt("Нашлось несколько чатов. Введите ID нужного:\n" + list);
+    if (id) { await api("/api/chat", { chatId: id.trim() }); toast("Чат сохранён"); }
+  });
+  $("chat-detect").disabled = false;
+};
+for (const b of $("mode").querySelectorAll("button")) b.onclick = () => setMode(b.dataset.mode);
+$("approvalWaitSec").oninput = (e) => { $("approvalWaitSec-label").textContent = waitLabel(e.target.value); };
+$("discord-save").onclick = () => act(async () => {
+  const result = await api("/api/discord", { token: $("discord-token").value,
+    guild: $("discord-guild").value.trim(), owner: $("discord-owner").value.trim() });
+  $("discord-token").value = "";
+  toast(result.warnings?.length ? "Discord настроен. " + result.warnings.join(" ") : "Discord настроен");
+});
+$("settings-save").onclick = () => act(() => api("/api/settings", {
+  deliveryMode: mode,
+  notificationTarget: $("notificationTarget").value,
+  notify: $("notify").value,
+  approvalWaitSec: Number($("approvalWaitSec").value),
+  chatReplies: $("chatReplies").checked,
+  spawnConfirm: $("spawnConfirm").value,
+  workerPermissions: $("workerPermissions").value,
+  presenceIdleSec: Number($("presenceIdleSec").value),
+  approvalGraceSec: Number($("approvalGraceSec").value),
+  actionGraceSec: Number($("actionGraceSec").value),
+  quietHours: $("quiet-on").checked ? { from: $("quiet-from").value, to: $("quiet-to").value } : null,
+}), "Настройки сохранены");
+$("test").onclick = () => act(() => api("/api/test", {}), "Тестовое сообщение отправлено");
+$("restart").onclick = () => act(() => api("/api/daemon/restart", {}), "Служба перезапущена");
+$("stop").onclick = () => act(() => api("/api/daemon/stop", {}), "Служба остановлена");
+
+refresh().catch(() => {});
+setInterval(() => { if (!document.hidden) refresh({ poll: true, keepForm: true }).catch(() => {}); }, 15000);
+</script>
+</body>
+</html>

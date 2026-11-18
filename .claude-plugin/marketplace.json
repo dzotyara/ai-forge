@@ -1,0 +1,14 @@
+{
+  "name": "ai-forge",
+  "description": "AI Forge: Claude Code sessions in Discord and Telegram",
+  "owner": {
+    "name": "dzotyara"
+  },
+  "plugins": [
+    {
+      "name": "ai-forge",
+      "source": "./plugins/ai-forge",
+      "description": "Claude Code sessions in Discord and Telegram: a channel per session, approval and question buttons, replies from your phone."
+    }
+  ]
+}

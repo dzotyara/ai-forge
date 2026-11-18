@@ -1,0 +1,20 @@
+{
+  "name": "ai-forge",
+  "interface": {
+    "displayName": "AI Forge"
+  },
+  "plugins": [
+    {
+      "name": "ai-forge",
+      "source": {
+        "source": "local",
+        "path": "./plugins/ai-forge"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

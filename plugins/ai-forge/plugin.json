@@ -1,0 +1,26 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "ai-forge",
+  "version": "1.13.0",
+  "description": "AI Forge: Discord and Telegram bridge for Codex and Claude Code: approval and action alerts, a channel per session, smart delivery, and replies from your phone in Claude Code.",
+  "author": {
+    "name": "dzotyara"
+  },
+  "repository": "https://github.com/dzotyara/ai-forge",
+  "extensions": {
+    "com.openai": {
+      "hooks": "./hooks/codex-hooks.json",
+      "interface": {
+        "displayName": "AI Forge",
+        "shortDescription": "Claude Code and Codex sessions in Discord and Telegram",
+        "longDescription": "Sends approval requests and turns blocked on user action to Discord or Telegram, with a channel per session and readable formatting. In Codex the bridge is notification-only. Bot secrets stay in a device-local configuration outside the plugin and repository.",
+        "developerName": "dzotyara",
+        "category": "Productivity",
+        "capabilities": [
+          "Send Discord and Telegram alerts",
+          "Channel per session"
+        ]
+      }
+    }
+  }
+}

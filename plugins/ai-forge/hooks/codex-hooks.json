@@ -1,0 +1,44 @@
+{
+  "description": "Telegram alerts for Codex: one-way notifications (two-way features are Claude Code only).",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact|fork",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT||process.env.PLUGIN_ROOT,'skills','telegram-action-notifier','scripts','telegram-action-notifier.mjs')).href).then(m=>m.run())\"",
+            "timeout": 3,
+            "statusMessage": "Loading Telegram action marker"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT||process.env.PLUGIN_ROOT,'skills','telegram-action-notifier','scripts','telegram-action-notifier.mjs')).href).then(m=>m.run())\"",
+            "timeout": 10,
+            "statusMessage": "Waiting for a Telegram approval",
+            "async": true
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT||process.env.PLUGIN_ROOT,'skills','telegram-action-notifier','scripts','telegram-action-notifier.mjs')).href).then(m=>m.run())\"",
+            "timeout": 20,
+            "statusMessage": "Posting the turn to Telegram"
+          }
+        ]
+      }
+    ]
+  }
+}
