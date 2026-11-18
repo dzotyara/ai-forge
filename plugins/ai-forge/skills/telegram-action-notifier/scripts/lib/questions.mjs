@@ -10,21 +10,22 @@
 import { randomBytes } from "node:crypto";
 import { promises as fsp } from "node:fs";
 import { escapeHtml } from "./format.mjs";
+import { L } from "./i18n.mjs";
 
 export const QUESTION_WAIT_SEC = 12 * 3600 - 300; // the PermissionRequest hook timeout in hooks.json is 43200
 const TAIL_BYTES = 512 * 1024;
 
 // Labels for the app's own action buttons, which carry no text of their own.
 export const APP_ACTION_LABELS = {
-  commit: "Закоммитить",
-  create_pr: "Создать PR",
-  merge: "Влить PR",
-  fix_ci: "Починить CI",
-  address_comments: "Ответить на комментарии",
-  resolve_conflicts: "Разрешить конфликты",
-  verify: "Проверить",
-  archive: "В архив",
-  new_session: "Новая сессия",
+  commit: L("Закоммитить", "Commit"),
+  create_pr: L("Создать PR", "Create PR"),
+  merge: L("Влить PR", "Merge PR"),
+  fix_ci: L("Починить CI", "Fix CI"),
+  address_comments: L("Ответить на комментарии", "Address comments"),
+  resolve_conflicts: L("Разрешить конфликты", "Resolve conflicts"),
+  verify: L("Проверить", "Verify"),
+  archive: L("В архив", "Archive"),
+  new_session: L("Новая сессия", "New session"),
 };
 
 // ------------------------------------------------------------- next-step box
@@ -83,7 +84,7 @@ export async function readTurnQuestion(transcriptPath) {
 }
 
 export function turnQuestionHtml(question) {
-  return `❓ <b>${escapeHtml(question.ask)}</b>${question.options.length ? "" : "\n<i>Ответьте сообщением в этой теме.</i>"}`;
+  return `❓ <b>${escapeHtml(question.ask)}</b>${question.options.length ? "" : L("\n<i>Ответьте сообщением в этой теме.</i>", "\n<i>Reply with a message in this topic.</i>")}`;
 }
 
 /** Buttons for the next-step box: data "w:<i>"; a press reaches the session as the owner's reply. */
@@ -121,10 +122,15 @@ export function questionsHtml(header, questions) {
     const number = questions.length > 1 ? `${qi + 1}. ` : "";
     const title = q.header ? `<b>${number}${escapeHtml(q.header)}</b>: ${escapeHtml(q.question)}` : `<b>${number}${escapeHtml(q.question)}</b>`;
     const options = q.options.map((o) => `• <b>${escapeHtml(o.label)}</b>${o.description ? ` — ${escapeHtml(o.description)}` : ""}`);
-    const multi = q.multiSelect ? "\n<i>Можно выбрать несколько, затем «Готово».</i>" : "";
+    const multi = q.multiSelect
+      ? L("\n<i>Можно выбрать несколько, затем «Готово».</i>", "\n<i>You can pick several, then “Done”.</i>")
+      : "";
     return `${title}\n${options.join("\n")}${multi}`;
   });
-  return `${header}\n\n${blocks.join("\n\n")}\n\n<i>Выберите кнопкой или ответьте своим текстом реплаем на это сообщение.</i>`;
+  return `${header}\n\n${blocks.join("\n\n")}\n\n${L(
+    "<i>Выберите кнопкой или ответьте своим текстом реплаем на это сообщение.</i>",
+    "<i>Pick a button, or reply to this message with your own text.</i>",
+  )}`;
 }
 
 /** selections: { [qi]: { picks: string[], done: boolean } } */
@@ -140,7 +146,7 @@ export function questionKeyboard(requestId, questions, selections = {}) {
     });
     const short = buttons.every((b) => b.text.length <= 18);
     for (let i = 0; i < buttons.length; i += short ? 2 : 1) rows.push(buttons.slice(i, i + (short ? 2 : 1)));
-    if (q.multiSelect) rows.push([{ text: `${prefix}Готово`, callback_data: `q:${requestId}:${qi}:ok`, style: "success" }]);
+    if (q.multiSelect) rows.push([{ text: `${prefix}${L("Готово", "Done")}`, callback_data: `q:${requestId}:${qi}:ok`, style: "success" }]);
   });
   return { inline_keyboard: rows };
 }

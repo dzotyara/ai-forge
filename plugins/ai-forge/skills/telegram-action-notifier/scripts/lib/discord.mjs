@@ -8,6 +8,7 @@ import { readFile } from "node:fs/promises";
 import process from "node:process";
 
 import { decodeHtml } from "./format.mjs";
+import { L } from "./i18n.mjs";
 
 export const discordId = (value) => typeof value === "string" && /^\d{17,20}$/.test(value);
 const ref = (channel, message) => `${channel}:${message}`;
@@ -23,21 +24,31 @@ export const CATEGORY_NAME = "AI Forge";
 export const GENERAL_NAME = "🔥・general";
 const LEGACY_CATEGORY_NAMES = ["AI Factory", "myskills"];
 const LEGACY_GENERAL_NAMES = ["🏭・general", "general"];
-const GENERAL_TOPIC = "Босс, запросы на запуск и общие уведомления. Напишите сюда — сообщение получит Босс. Команды: /status, /away, /here, /mute.";
+const GENERAL_TOPIC = L(
+  "Босс, запросы на запуск и общие уведомления. Напишите сюда — сообщение получит Босс. Команды: /status, /away, /here, /mute.",
+  "Boss, launch requests and general notifications. Write here to message the Boss. Commands: /status, /away, /here, /mute.",
+);
 
 export const DEFAULT_ACTIVITY = "AI Forge";
 
 // Gateway close codes that stop reconnecting, with what the owner should do.
 const FATAL_CLOSE = {
-  4004: "Discord не принял токен бота. Подключите Discord в панели заново.",
-  4010: "Discord Gateway: неверный shard (4010).",
-  4011: "Discord Gateway: нужен sharding (4011).",
-  4012: "Discord Gateway: неверная версия API (4012).",
-  4013: "Discord Gateway: неверные intents (4013).",
-  4014: "Включите Message Content Intent: Developer Portal → Bot → Privileged Gateway Intents. Затем перезапустите службу.",
+  4004: L("Discord не принял токен бота. Подключите Discord в панели заново.", "Discord rejected the bot token. Connect Discord again in the panel."),
+  4010: L("Discord Gateway: неверный shard (4010).", "Discord Gateway: invalid shard (4010)."),
+  4011: L("Discord Gateway: нужен sharding (4011).", "Discord Gateway: sharding required (4011)."),
+  4012: L("Discord Gateway: неверная версия API (4012).", "Discord Gateway: invalid API version (4012)."),
+  4013: L("Discord Gateway: неверные intents (4013).", "Discord Gateway: invalid intents (4013)."),
+  4014: L(
+    "Включите Message Content Intent: Developer Portal → Bot → Privileged Gateway Intents. Затем перезапустите службу.",
+    "Turn on Message Content Intent: Developer Portal → Bot → Privileged Gateway Intents. Then restart the service.",
+  ),
 };
-const NO_CONTENT_NOTICE = "Message Content Intent выключен: кнопки, команды и статус работают, а текстовые ответы из Discord бот не видит. " +
-  "Включите его: Developer Portal → Bot → Privileged Gateway Intents, затем перезапустите службу.";
+const NO_CONTENT_NOTICE = L(
+  "Message Content Intent выключен: кнопки, команды и статус работают, а текстовые ответы из Discord бот не видит. " +
+    "Включите его: Developer Portal → Bot → Privileged Gateway Intents, затем перезапустите службу.",
+  "Message Content Intent is off: buttons, commands and status work, but the bot cannot see text replies from Discord. " +
+    "Turn it on: Developer Portal → Bot → Privileged Gateway Intents, then restart the service.",
+);
 const GUILDS = 1, GUILD_MESSAGES = 512, MESSAGE_CONTENT = 32768;
 const MESSAGE_CONTENT_FLAGS = (1 << 18) | (1 << 19); // GATEWAY_MESSAGE_CONTENT(_LIMITED)
 const ASSETS = new URL("../../assets/", import.meta.url);
@@ -54,7 +65,7 @@ function components(markup) {
     const rows = [];
     for (let i = 0; i < Math.min(buttons.length, 125); i += 25) {
       rows.push({ type: 1, components: [{ type: 3, custom_id: `choice:${i}`,
-        placeholder: "Выберите ответ", options: buttons.slice(i, i + 25).map((button) => ({
+        placeholder: L("Выберите ответ", "Choose an answer"), options: buttons.slice(i, i + 25).map((button) => ({
           label: button.text.slice(0, 100), value: unique(button.callback_data),
         })),
       }] });
@@ -76,7 +87,7 @@ export async function discordApi(bot, method, route, body) {
     method, headers: { Authorization: `Bot ${bot.secret}`, "Content-Type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),
     signal: AbortSignal.timeout(8000),
-  }).catch(() => { throw new Error("Discord: ошибка сети"); });
+  }).catch(() => { throw new Error(L("Discord: ошибка сети", "Discord: network error")); });
   if (!response.ok) throw Object.assign(new Error(`Discord: HTTP ${response.status}`), { status: response.status });
   return response.status === 204 ? null : response.json();
 }
@@ -118,20 +129,29 @@ export async function brandDiscord(bot, guild, identity) {
   if (!identity.avatar) {
     await discordApi(bot, "PATCH", "/users/@me", { avatar: await imageDataUri("discord-avatar.png") })
       .catch((error) => warnings.push(error.status === 429
-        ? "Discord временно не даёт сменить аватар бота: попробуйте подключить ещё раз через час."
-        : `Аватар бота не обновлён (${error.message}).`));
+        ? L(
+          "Discord временно не даёт сменить аватар бота: попробуйте подключить ещё раз через час.",
+          "Discord does not allow changing the bot avatar right now. Try connecting again in an hour.",
+        )
+        : L(`Аватар бота не обновлён (${error.message}).`, `Bot avatar not updated (${error.message}).`)));
   }
   const server = await discordApi(bot, "GET", `/guilds/${guild}`).catch(() => null);
   // Server default "Only @mentions": the bot pings the owner when it needs them.
   if (server && server.default_message_notifications !== 1) {
     await discordApi(bot, "PATCH", `/guilds/${guild}`, { default_message_notifications: 1 })
-      .catch((error) => warnings.push(`Уведомления сервера не переключены на «только упоминания» (${error.message}).`));
+      .catch((error) => warnings.push(L(
+        `Уведомления сервера не переключены на «только упоминания» (${error.message}).`,
+        `Server notifications not switched to “Only @mentions” (${error.message}).`,
+      )));
   }
   if (server && !server.icon) {
     await discordApi(bot, "PATCH", `/guilds/${guild}`, { icon: await imageDataUri("discord-server-icon.png") })
       .catch((error) => warnings.push(error.status === 403
-        ? "Иконку сервера не поставил: дайте боту право Manage Server и подключите ещё раз."
-        : `Иконка сервера не обновлена (${error.message}).`));
+        ? L(
+          "Иконку сервера не поставил: дайте боту право Manage Server и подключите ещё раз.",
+          "Server icon not set: give the bot the Manage Server permission and connect again.",
+        )
+        : L(`Иконка сервера не обновлена (${error.message}).`, `Server icon not updated (${error.message}).`)));
   }
   return warnings;
 }
@@ -142,11 +162,13 @@ export async function setupDiscord(secret, requestedGuild, owner, previous = {})
   const [identity, guilds] = await Promise.all([botUser(bot), discordApi(bot, "GET", "/users/@me/guilds")]);
   const guild = requestedGuild || (guilds.length === 1 ? guilds[0].id : "");
   if (!guilds.some((item) => item.id === guild)) {
-    throw new Error(guilds.length ? "Укажите ID сервера, на который добавлен бот." : "Сначала добавьте бота на сервер Discord.");
+    throw new Error(guilds.length
+      ? L("Укажите ID сервера, на который добавлен бот.", "Enter the ID of the server the bot was added to.")
+      : L("Сначала добавьте бота на сервер Discord.", "Add the bot to a Discord server first."));
   }
-  if (identity.id === owner) throw new Error("Укажите свой ID пользователя вместо ID бота.");
+  if (identity.id === owner) throw new Error(L("Укажите свой ID пользователя вместо ID бота.", "Enter your user ID, not the bot ID."));
   const member = await discordApi(bot, "GET", `/guilds/${guild}/members/${owner}`);
-  if (member.user?.bot) throw new Error("Укажите ID вашей учётной записи.");
+  if (member.user?.bot) throw new Error(L("Укажите ID вашей учётной записи.", "Enter the ID of your own account."));
   const route = `/guilds/${guild}/channels`;
   const channels = await discordApi(bot, "GET", route);
   const permissions = privateChannelPermissions(guild, owner, identity.id);
@@ -293,7 +315,7 @@ export async function discordCall(bot, method, params) {
 export function slashCommands(commands) {
   return commands.map(({ command, description }) => ({
     name: command, description: description.slice(0, 100), type: 1,
-    ...(command === "mute" ? { options: [{ type: 3, name: "срок", description: "30m, 2h или off", required: true }] } : {}),
+    ...(command === "mute" ? { options: [{ type: 3, name: L("срок", "duration"), description: L("30m, 2h или off", "30m, 2h or off"), required: true }] } : {}),
   }));
 }
 

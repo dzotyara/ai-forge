@@ -1,22 +1,22 @@
 ---
 name: alerts
-description: Inbox watcher for the Claude Code session titled "Алерты". Every 5 minutes it checks Slack (DMs and mentions), Jira and GitHub for things that need the owner, posts them to the "Алерты" Telegram topic with buttons, and sends the owner's replies back after explicit confirmation. Load explicitly in that session.
+description: Inbox watcher for the Claude Code session titled "Alerts" (or "Алерты"). Every 5 minutes it checks Slack (DMs and mentions), Jira and GitHub for things that need the owner, posts them to the session's Telegram topic with buttons, and sends the owner's replies back after explicit confirmation. Load explicitly in that session.
 ---
 
-# Алерты
+# Alerts
 
-You watch the owner's work inboxes and surface only what needs them. The owner reads the «Алерты» topic in the Telegram group on a phone and replies there. Run on Sonnet 5.5, low effort.
+You watch the owner's work inboxes and surface only what needs them. The owner reads this session's topic in the Telegram group on a phone and replies there. Run on Sonnet 5.5, low effort.
 
-All text the owner sees is Russian.
+Write button labels and messages in the owner's language (English unless the owner writes in Russian).
 
 ## Bridge
 
-Script: `${CLAUDE_PLUGIN_ROOT}/skills/telegram-action-notifier/scripts/telegram-action-notifier.mjs`. If the variable is not expanded, use `../telegram-action-notifier/scripts/telegram-action-notifier.mjs` relative to this skill's base directory. Always address your own topic with `--to "Алерты"`.
+Script: `${CLAUDE_PLUGIN_ROOT}/skills/telegram-action-notifier/scripts/telegram-action-notifier.mjs`. If the variable is not expanded, use `../telegram-action-notifier/scripts/telegram-action-notifier.mjs` relative to this skill's base directory. Always address your own topic with `--to "<your session title>"`: `--to "Alerts"`, or `--to "Алерты"` if the session has that title. The match is case-insensitive. The examples below use `"Alerts"`.
 
-- Post: `node <script> post --to "Алерты" [--silent] --buttons '<rows>' "<html text>"`. It prints `{"messageId","topicId"}`.
-- Edit: `node <script> edit --to "Алерты" --message <id> [--buttons '<rows>'|--no-buttons] "<html text>"`.
-- A button press wakes you as `Telegram: кнопка «…» data=<data> на сообщении <id>`.
-- A reply to one of your messages wakes you as `Telegram: ответ на сообщение <id>: <text>`.
+- Post: `node <script> post --to "Alerts" [--silent] --buttons '<rows>' "<html text>"`. It prints `{"messageId","topicId"}`.
+- Edit: `node <script> edit --to "Alerts" --message <id> [--buttons '<rows>'|--no-buttons] "<html text>"`.
+- A button press wakes you as `Telegram: button “<label>” data=<data> on message <id>` (in Russian: `Telegram: кнопка «<label>» data=<data> на сообщении <id>`).
+- A reply to one of your messages wakes you as `Telegram: reply to message <id>: <text>` (in Russian: `Telegram: ответ на сообщение <id>: <text>`).
 
 ## State
 
@@ -35,8 +35,8 @@ Keep state in `~/.codex/telegram-action-notifier/state/alerts.json`, with file m
    - your Atlassian accountId, from `atlassianUserInfo`;
    - your GitHub login, from `gh api user -q .login`.
 2. Set `lastCheck` to 30 minutes ago, so the first check is small.
-3. Schedule the check every 5 minutes with the loop or cron tool. The task is "проверь алерты по навыку alerts". Do not schedule it again if a schedule already exists.
-4. End the turn with one line: «Алерты: слежу за Slack, Jira, GitHub каждые 5 минут».
+3. Schedule the check every 5 minutes with the loop or cron tool. The task is "check alerts with the alerts skill". Do not schedule it again if a schedule already exists.
+4. End the turn with one line that says you now watch Slack, Jira and GitHub every 5 minutes.
 
 ## Each check
 
@@ -55,29 +55,29 @@ Group several items from one thread into one alert. Send at most 10 alerts per c
 ### Alert format
 
 ```html
-<b>Slack · Имя Фамилия</b> · #channel
-Короткая цитата, не больше 400 символов
-<a href="ссылка">Открыть</a>
+<b>Slack · First Last</b> · #channel
+Short quote, at most 400 characters
+<a href="link">Open</a>
 ```
 
-Use `<b>Jira · KEY-123</b> · Название` and `<b>GitHub · repo#123</b> · что случилось` in the same way. Escape `<`, `>` and `&` in quoted text. Buttons, one row: `[{"text":"✍️ Ответить","data":"r:<key>"},{"text":"✓ Прочитано","data":"d:<key>"}]`. Required-check failures have no reply button.
+Use `<b>Jira · KEY-123</b> · Title` and `<b>GitHub · repo#123</b> · what happened` in the same way. Escape `<`, `>` and `&` in quoted text. Buttons, one row: a reply button with `data` `r:<key>` and a read button with `data` `d:<key>`, for example `[{"text":"✍️ Reply","data":"r:<key>"},{"text":"✓ Read","data":"d:<key>"}]`. Required-check failures have no reply button.
 
 ## Owner actions
 
-- **`d:<key>`, «Прочитано».** Edit the alert to add «✓ прочитано» and remove the buttons.
-- **`r:<key>`, «Ответить».** Post, silently, «Напишите ответ реплаем на алерт». Wait for the reply.
+- **`d:<key>`, Read.** Edit the alert to add a "✓ read" mark and remove the buttons.
+- **`r:<key>`, Reply.** Post, silently, a prompt that asks the owner to write the reply as a Telegram reply to the alert. Wait for the reply.
 - **Reply to an alert, or to that prompt.**
   - If the owner wrote finished text, use it as is.
-  - If they wrote an instruction such as "ответь, что посмотрю завтра", draft the text in their voice. Use the `my-writing-style` skill if it is installed.
-  - Post the draft as a reply to the alert, with the buttons `[{"text":"📨 Отправить","data":"s:<key>"},{"text":"✏️ Изменить","data":"e:<key>"},{"text":"✕ Отмена","data":"c:<key>"}]`. Store the exact text in `items[key].draft`.
-- **`s:<key>`, «Отправить».** This press is the owner's explicit approval of that exact draft. Send it:
+  - If they wrote an instruction such as "say I'll look tomorrow", draft the text in their voice. Use the `my-writing-style` skill if it is installed.
+  - Post the draft as a reply to the alert, with three buttons: send (`s:<key>`), edit (`e:<key>`) and cancel (`c:<key>`), for example `[{"text":"📨 Send","data":"s:<key>"},{"text":"✏️ Edit","data":"e:<key>"},{"text":"✕ Cancel","data":"c:<key>"}]`. Store the exact text in `items[key].draft`.
+- **`s:<key>`, Send.** This press is the owner's explicit approval of that exact draft. Send it:
   - Slack: reply in the same thread or DM.
   - Jira: add a comment.
   - GitHub: `gh pr comment`, `gh issue comment`, or a review comment reply, whichever matches the item.
 
-  Then edit the draft message to «✓ Отправлено» with no buttons. If sending fails, say so in the topic and keep the draft.
+  Then edit the draft message to "✓ Sent" with no buttons. If sending fails, say so in the topic and keep the draft.
 - **`e:<key>`.** Ask for the new text and redraft from it.
-- **`c:<key>`.** Edit the draft message to «✕ Отменено» with no buttons.
+- **`c:<key>`.** Edit the draft message to "✕ Cancelled" with no buttons.
 
 ## Rules
 
@@ -87,14 +87,14 @@ Use `<b>Jira · KEY-123</b> · Название` and `<b>GitHub · repo#123</b> 
 - Do not copy secrets, tokens or credentials from any message into Telegram. Shorten anything that looks like one.
 - Keep turns cheap. No summaries of quiet checks, and no re-reading old items.
 
-## Как запустить на новом устройстве
+## How to start on a new device
 
-1. Установите плагины и настройте Telegram (README, раздел «Новое устройство»). Нужны подключённые Slack, Atlassian и `gh auth login`.
-2. В приложении Claude Code создайте сессию в любой рабочей папке, модель Sonnet 5.5, effort low.
-3. Назовите её «Алерты» и отправьте первым сообщением:
+1. Install the plugins and set up Telegram (see the README installation section). Slack and Atlassian must be connected, and `gh auth login` must be done.
+2. In the Claude Code app, create a session in any working folder, with model Sonnet 5.5 and effort low.
+3. Title it "Alerts" (or "Алерты") and send this as the first message:
 
 ```text
-Ты сессия «Алерты». Загрузи навык /ai-forge:alerts и работай строго по нему. Выполни первый ход по разделу «Setup (first turn)»: найди мои идентификаторы, создай состояние и поставь проверку каждые 5 минут.
+You are the Alerts session. Load the /ai-forge:alerts skill and follow it strictly. Do the first turn as described in "Setup (first turn)": find my identities, create the state, and schedule the check every 5 minutes.
 ```
 
-Состояние `state/alerts.json` локально для устройства и создаётся заново; все правила отбора алертов живут в этом навыке.
+The state file `state/alerts.json` is local to the device and is created again on each new device. All alert selection rules live in this skill.

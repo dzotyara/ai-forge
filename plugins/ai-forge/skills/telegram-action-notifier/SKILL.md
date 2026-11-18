@@ -19,7 +19,7 @@ Do not use the marker for optional suggestions, progress updates, routine handof
 
 ## Claude Code: replies from Telegram
 
-In Claude Code the user can answer in the session's Telegram topic. Their message wakes the session as a system reminder starting with `Сообщение пользователя из Telegram:`, `Telegram: ответ на сообщение …` or `Telegram: кнопка …`. Treat it as the user's next prompt and reply normally; that reply is posted back to the same topic. In Codex, Telegram is notification-only: wait for the user in the agent session.
+In Claude Code the user can answer in the session's Telegram topic. Their message wakes the session as a system reminder starting with `User message from Telegram:` (in Russian: `Сообщение пользователя из Telegram:`) or `Telegram:` (fixed markers from the bridge; a `Telegram:` line is a reply to a message or a button press). Treat it as the user's next prompt and reply normally; that reply is posted back to the same topic. In Codex, Telegram is notification-only: wait for the user in the agent session.
 
 To post into a topic yourself (for example from an alerts session), run `node <this skill>/scripts/telegram-action-notifier.mjs post --to "<your session title>" "<text>"`. See the plugin README for `--buttons`, `--reply-to` and `edit`.
 

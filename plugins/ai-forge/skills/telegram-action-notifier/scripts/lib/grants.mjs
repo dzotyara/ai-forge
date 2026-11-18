@@ -14,6 +14,7 @@ import path from "node:path";
 import { stateDir } from "./bridge.mjs";
 import { redactSecrets } from "./common.mjs";
 import { escapeHtml, shortenPaths, truncateText } from "./format.mjs";
+import { L } from "./i18n.mjs";
 
 export const GRANT_TTL_MS = 30 * 60_000;
 const grantsFile = () => path.join(stateDir(), "grants.json");
@@ -84,8 +85,8 @@ export function deniedCallHtml(event) {
   const input = event?.tool_input && typeof event.tool_input === "object" ? event.tool_input : {};
   const clean = (text, max) => escapeHtml(truncateText(shortenPaths(redactSecrets(String(text)), event?.cwd), max));
   const reason = String(event?.reason ?? "").trim();
-  const lines = [`🛡 <b>Авто-режим заблокировал действие</b>${reason ? `: ${clean(reason, 200)}` : ""}`];
-  lines.push(`Инструмент: <code>${escapeHtml(tool)}</code>`);
+  const lines = [`🛡 <b>${L("Авто-режим заблокировал действие", "Auto mode blocked an action")}</b>${reason ? `: ${clean(reason, 200)}` : ""}`];
+  lines.push(`${L("Инструмент", "Tool")}: <code>${escapeHtml(tool)}</code>`);
   if (typeof input.description === "string" && input.description.trim()) {
     lines.push(`<blockquote>${clean(input.description.trim(), 300)}</blockquote>`);
   }
@@ -94,15 +95,18 @@ export function deniedCallHtml(event) {
     const { description, ...rest } = input;
     if (Object.keys(rest).length) lines.push(`<pre>${clean(JSON.stringify(rest, null, 1), 1500)}</pre>`);
   }
-  lines.push("<i>«Разрешить один раз» — сессия повторит именно это действие, и оно пройдёт без проверки авто-режима.</i>");
+  lines.push(L(
+    "<i>«Разрешить один раз» — сессия повторит именно это действие, и оно пройдёт без проверки авто-режима.</i>",
+    "<i>“Allow once”: the session repeats exactly this action, and it skips the auto mode check.</i>",
+  ));
   return lines.join("\n");
 }
 
 export function grantKeyboard(requestId) {
   return {
     inline_keyboard: [[
-      { text: "✅ Разрешить один раз", callback_data: `p:${requestId}:allow`, style: "success" },
-      { text: "❌ Нет", callback_data: `p:${requestId}:deny`, style: "danger" },
+      { text: L("✅ Разрешить один раз", "✅ Allow once"), callback_data: `p:${requestId}:allow`, style: "success" },
+      { text: L("❌ Нет", "❌ No"), callback_data: `p:${requestId}:deny`, style: "danger" },
     ]],
   };
 }

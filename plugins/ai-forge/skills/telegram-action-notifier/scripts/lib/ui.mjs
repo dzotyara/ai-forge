@@ -39,11 +39,13 @@ import {
   telegram,
 } from "./common.mjs";
 import { discordId, setupDiscord } from "./discord.mjs";
+import { L, lang, resetLang } from "./i18n.mjs";
 import { detectPresence, effectiveMode } from "./presence.mjs";
 
 const PAGE = new URL("./settings.html", import.meta.url);
 const IDLE_MS = 30 * 60_000;
-const TEST_MESSAGE = "✅ Проверка из панели настроек: бот на связи.";
+// A function, not a constant: the language can change while the panel runs.
+const testMessage = () => L("✅ Проверка из панели настроек: бот на связи.", "✅ Test from the settings panel: the bot is online.");
 
 const integer = (min, max) => (value) =>
   Number.isInteger(value) && value >= min && value <= max ? value : undefined;
@@ -60,17 +62,18 @@ const VALIDATORS = {
   actionGraceSec: integer(0, 3600),
   spawnConfirm: (value) => (value === "telegram" || value === "never" ? value : undefined),
   workerPermissions: (value) => (value === "telegram" || value === "auto" ? value : undefined),
+  language: (value) => (value === "en" || value === "ru" ? value : undefined),
 };
 
 /** Validate a partial settings update. Unknown keys and bad values are rejected. */
 export function validateSettings(body) {
-  if (!body || typeof body !== "object" || Array.isArray(body)) return { error: "Ожидался объект настроек." };
+  if (!body || typeof body !== "object" || Array.isArray(body)) return { error: L("Ожидался объект настроек.", "Expected a settings object.") };
   const value = {};
   for (const [key, raw] of Object.entries(body)) {
     const check = VALIDATORS[key];
-    if (!check) return { error: `Неизвестная настройка: ${key}` };
+    if (!check) return { error: L(`Неизвестная настройка: ${key}`, `Unknown setting: ${key}`) };
     const parsed = check(raw);
-    if (parsed === undefined) return { error: `Недопустимое значение: ${key}` };
+    if (parsed === undefined) return { error: L(`Недопустимое значение: ${key}`, `Invalid value: ${key}`) };
     value[key] = parsed;
   }
   return { value };
@@ -131,7 +134,7 @@ async function botInfo(token) {
       topicsEnabled: me.has_topics_enabled === true,
     };
   } catch (error) {
-    value = { configured: true, ok: false, error: redactSecrets(error.description || "Нет связи с Telegram") };
+    value = { configured: true, ok: false, error: redactSecrets(error.description || L("Нет связи с Telegram", "Cannot reach Telegram")) };
   }
   botCache = { at: Date.now(), token, value };
   return value;
@@ -165,7 +168,7 @@ async function snapshot() {
       ownerUserId: settings.ownerUserId || null,
     },
     topics: topics ? { ...topics, text: TOPIC_REASON_TEXT[topics.reason] ?? topics.reason } : null,
-    boss: bossId ? { id: bossId, title: state.sessions[bossId]?.title ?? "Босс" } : null,
+    boss: bossId ? { id: bossId, title: state.sessions[bossId]?.title ?? L("Босс", "Boss") } : null,
     settings: {
       deliveryMode: settings.deliveryMode,
       notificationTarget: settings.notificationTarget,
@@ -178,6 +181,7 @@ async function snapshot() {
       actionGraceSec: settings.actionGraceSec,
       spawnConfirm: settings.spawnConfirm,
       workerPermissions: settings.workerPermissions,
+      language: settings.language,
     },
     discord: {
       configured: Boolean(discordSettings(settings)),
@@ -199,12 +203,12 @@ const ROUTES = {
 
   "POST /api/token": async (body) => {
     const token = typeof body.token === "string" ? body.token.trim() : "";
-    if (!isValidTokenFormat(token)) return [400, { error: "Это не похоже на токен бота. Скопируйте его из @BotFather целиком." }];
+    if (!isValidTokenFormat(token)) return [400, { error: L("Это не похоже на токен бота. Скопируйте его из @BotFather целиком.", "This does not look like a bot token. Copy the whole token from @BotFather.") }];
     let me;
     try {
       me = await telegram(token, "getMe", {}, { timeoutMs: 8000 });
     } catch {
-      return [400, { error: "Telegram не принял токен. Проверьте его и подключение к сети." }];
+      return [400, { error: L("Telegram не принял токен. Проверьте его и подключение к сети.", "Telegram rejected the token. Check the token and your network connection.") }];
     }
     await stopDaemon(); // the old token's poller must not keep running
     await saveConfiguration({ botToken: token });
@@ -219,12 +223,12 @@ const ROUTES = {
   // Private /start detection. In group mode the found user becomes the owner.
   "POST /api/chat/detect": async () => {
     const settings = await loadSettings();
-    if (!settings.token) return [400, { error: "Сначала сохраните токен бота." }];
+    if (!settings.token) return [400, { error: L("Сначала сохраните токен бота.", "Save the bot token first.") }];
     let chats;
     try {
       chats = (await findChats(settings.token, { waitSec: 25 })).filter((chat) => chat.type === "private");
     } catch {
-      return [502, { error: "Не удалось прочитать сообщения бота." }];
+      return [502, { error: L("Не удалось прочитать сообщения бота.", "Could not read the bot's messages.") }];
     }
     if (chats.length !== 1) return { chats, saved: null };
     if (settings.chatId && !isPrivateChatId(settings.chatId)) {
@@ -237,17 +241,17 @@ const ROUTES = {
 
   "POST /api/chat/groups": async () => {
     const settings = await loadSettings();
-    if (!settings.token) return [400, { error: "Сначала сохраните токен бота." }];
+    if (!settings.token) return [400, { error: L("Сначала сохраните токен бота.", "Save the bot token first.") }];
     try {
       return { groups: await findGroups(settings.token) };
     } catch {
-      return [502, { error: "Не удалось прочитать обновления бота." }];
+      return [502, { error: L("Не удалось прочитать обновления бота.", "Could not read the bot's updates.") }];
     }
   },
 
   "POST /api/chat": async (body) => {
     const chatId = String(body.chatId ?? "").trim();
-    if (!/^-?\d+$/.test(chatId)) return [400, { error: "ID чата должен быть числом." }];
+    if (!/^-?\d+$/.test(chatId)) return [400, { error: L("ID чата должен быть числом.", "The chat ID must be a number.") }];
     await stopDaemon();
     const result = await setTargetChat(chatId);
     return { ok: true, ownerKnown: Boolean(result.ownerUserId) };
@@ -258,15 +262,18 @@ const ROUTES = {
     if (error) return [400, { error }];
     const current = await loadSettings();
     if (value.notificationTarget && value.notificationTarget !== "telegram" && !discordSettings(current)) {
-      return [400, { error: "Сначала настройте Discord." }];
+      return [400, { error: L("Сначала настройте Discord.", "Set up Discord first.") }];
     }
     if (value.notificationTarget && value.notificationTarget !== "discord" && (!current.token || !current.chatId)) {
-      return [400, { error: "Сначала настройте Telegram." }];
+      return [400, { error: L("Сначала настройте Telegram.", "Set up Telegram first.") }];
     }
     const changed = value.notificationTarget && current.notificationTarget !== value.notificationTarget;
-    const restart = changed && (await daemonStatus()).running;
+    // The daemon reads the language once per process, so a new language needs a restart too.
+    const languageChanged = value.language && current.language !== value.language;
+    const restart = (changed || languageChanged) && (await daemonStatus()).running;
     if (restart) await stopDaemon();
     await saveConfiguration(value);
+    if (languageChanged) resetLang();
     if (restart) await ensureDaemon();
     return { ok: true };
   },
@@ -276,13 +283,13 @@ const ROUTES = {
     const secret = typeof body.token === "string" && body.token.trim() || current.discordToken;
     const { guild = "", owner } = body;
     if (!/^[\w.-]{30,200}$/.test(secret) || (guild && !discordId(guild)) || !discordId(owner)) {
-      return [400, { error: "Укажите токен, свой ID пользователя и, если нужно, ID сервера Discord." }];
+      return [400, { error: L("Укажите токен, свой ID пользователя и, если нужно, ID сервера Discord.", "Enter the bot token, your user ID and, if needed, the Discord server ID.") }];
     }
     let next;
     try {
       next = await setupDiscord(secret, guild, owner, current);
     } catch (error) {
-      const explanation = { 401: "Discord не принял токен бота.", 403: "Проверьте права бота на создание каналов и настройку доступа.", 404: "Discord не нашёл сервер или пользователя." };
+      const explanation = { 401: L("Discord не принял токен бота.", "Discord rejected the bot token."), 403: L("Проверьте права бота на создание каналов и настройку доступа.", "Check that the bot can create channels and manage permissions."), 404: L("Discord не нашёл сервер или пользователя.", "Discord could not find the server or the user.") };
       return [400, { error: explanation[error.status] ?? error.message }];
     }
     const restart = (await daemonStatus()).running;
@@ -301,35 +308,35 @@ const ROUTES = {
   },
 
   "POST /api/sessions/mute": async (body) => {
-    if (typeof body.id !== "string") return [400, { error: "Нет id сессии." }];
+    if (typeof body.id !== "string") return [400, { error: L("Нет id сессии.", "Missing session id.") }];
     return { ok: await setSessionMuted(body.id, body.muted === true) };
   },
 
   "POST /api/sessions/forget": async (body) => {
-    if (typeof body.id !== "string") return [400, { error: "Нет id сессии." }];
+    if (typeof body.id !== "string") return [400, { error: L("Нет id сессии.", "Missing session id.") }];
     try {
       return { ok: true, ...(await forgetSession(await loadSettings(), body.id, { deleteTopic: body.deleteTopic === true })) };
     } catch {
-      return [502, { error: "Сессия забыта, но тему удалить не удалось." }];
+      return [502, { error: L("Сессия забыта, но тему удалить не удалось.", "The session is forgotten, but its topic could not be deleted.") }];
     }
   },
 
   "POST /api/test": async () => {
     const settings = await loadNotificationSettings();
-    if (!settings.token || !settings.chatId) return [400, { error: "Сначала настройте направление доставки." }];
+    if (!settings.token || !settings.chatId) return [400, { error: L("Сначала настройте направление доставки.", "Set up a delivery target first.") }];
     try {
       if (settings.notificationTarget === "both") {
         const discord = discordSettings(settings);
-        if (!discord) return [400, { error: "Сначала настройте Discord." }];
+        if (!discord) return [400, { error: L("Сначала настройте Discord.", "Set up Discord first.") }];
         const results = await Promise.allSettled([
-          deliver({ ...settings, notificationTarget: "telegram" }, {}, [TEST_MESSAGE]),
-          deliver(discord, {}, [TEST_MESSAGE]),
+          deliver({ ...settings, notificationTarget: "telegram" }, {}, [testMessage()]),
+          deliver(discord, {}, [testMessage()]),
         ]);
         const failed = ["Telegram", "Discord"].filter((_, index) => results[index].status === "rejected");
-        if (failed.length) return [502, { error: `Тест не доставлен в ${failed.join(" и ")}.` }];
-      } else await deliver(settings, {}, [TEST_MESSAGE]);
+        if (failed.length) return [502, { error: L(`Тест не доставлен в ${failed.join(" и ")}.`, `Test not delivered to ${failed.join(" and ")}.`) }];
+      } else await deliver(settings, {}, [testMessage()]);
     } catch (error) {
-      return [502, { error: redactSecrets(error.description || "Не удалось отправить") }];
+      return [502, { error: redactSecrets(error.description || L("Не удалось отправить", "Could not send")) }];
     }
     return { ok: true };
   },
@@ -337,12 +344,20 @@ const ROUTES = {
   "POST /api/daemon/restart": async () => {
     await stopDaemon();
     const settings = await loadNotificationSettings();
-    if (!settings.token || !settings.chatId) return [400, { error: "Сначала укажите токен и чат." }];
+    if (!settings.token || !settings.chatId) return [400, { error: L("Сначала укажите токен и чат.", "Set the token and the chat first.") }];
     return { ok: true, pid: await ensureDaemon() };
   },
 
   "POST /api/daemon/stop": async () => ({ ok: true, pid: await stopDaemon() }),
 };
+
+/** The page is written in English; the inline script switches it to Russian when LANG is "ru". */
+function localizePage(html) {
+  const current = lang();
+  return html
+    .replace('<html lang="en">', `<html lang="${current}">`)
+    .replace('"use strict";', `"use strict";\nconst LANG = "${current}";`);
+}
 
 /**
  * Request handler. Every request must carry the right Host; the page needs
@@ -359,7 +374,7 @@ export function createUiHandler({ secret, getPort, onActivity = () => {} }) {
     if (req.method === "GET" && url.pathname === "/") {
       if (!sameSecret(url.searchParams.get("k"), secret)) return send(res, 403, "Forbidden", "text/plain; charset=utf-8");
       onActivity();
-      return send(res, 200, await readFile(PAGE, "utf8"), "text/html; charset=utf-8");
+      return send(res, 200, localizePage(await readFile(PAGE, "utf8")), "text/html; charset=utf-8");
     }
 
     if (!url.pathname.startsWith("/api/")) return send(res, 404, { error: "not found" });
@@ -376,7 +391,7 @@ export function createUiHandler({ secret, getPort, onActivity = () => {} }) {
       if (Array.isArray(result)) return send(res, result[0], result[1]);
       return send(res, 200, result);
     } catch (error) {
-      return send(res, error.status ?? 500, { error: error.status ? error.message : "Внутренняя ошибка" });
+      return send(res, error.status ?? 500, { error: error.status ? error.message : L("Внутренняя ошибка", "Internal error") });
     }
   };
 }
@@ -393,7 +408,7 @@ export async function startUi({ openBrowser = true, idleMs = IDLE_MS, log = cons
   const touch = () => {
     clearTimeout(timer);
     timer = setTimeout(() => {
-      log("Панель закрыта: 30 минут без действий.");
+      log(L("Панель закрыта: 30 минут без действий.", "Panel closed after 30 minutes of inactivity."));
       shutdown();
     }, idleMs);
   };
@@ -404,8 +419,8 @@ export async function startUi({ openBrowser = true, idleMs = IDLE_MS, log = cons
   process.on("SIGINT", shutdown);
   process.on("SIGTERM", shutdown);
   const url = `http://127.0.0.1:${port}/?k=${secret}`;
-  log(`Панель настроек: ${url}`);
-  log("Ссылка работает только на этом Mac. Остановить: Ctrl-C (или закроется сама через 30 минут без действий).");
+  log(L(`Панель настроек: ${url}`, `Settings panel: ${url}`));
+  log(L("Ссылка работает только на этом Mac. Остановить: Ctrl-C (или закроется сама через 30 минут без действий).", "The link works only on this Mac. Stop with Ctrl-C (it also closes by itself after 30 minutes of inactivity)."));
   if (openBrowser && process.platform === "darwin") execFile("open", [url], () => {});
   return { server, port, url, secret };
 }

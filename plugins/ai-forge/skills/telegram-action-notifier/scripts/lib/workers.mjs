@@ -32,6 +32,7 @@ import {
 } from "./bridge.mjs";
 import { EFFORTS, WORKER_MODES, isModelId, isQuietTime, loadNotificationSettings as loadSettings, redactSecrets, telegram } from "./common.mjs";
 import { escapeHtml, projectName, truncateText } from "./format.mjs";
+import { L } from "./i18n.mjs";
 
 const ENTRY_SCRIPT = fileURLToPath(new URL("../telegram-action-notifier.mjs", import.meta.url));
 
@@ -225,8 +226,8 @@ async function reportFailure(settings, sessionId, session, result) {
   const reason = result.error
     || (result.json?.is_error && typeof result.json.result === "string" && result.json.result)
     || result.stderr.trim().split("\n").filter(Boolean).at(-1)
-    || `код ${result.code}`;
-  const html = `⚠️ <b>Запуск не удался</b>\n<code>${escapeHtml(truncateText(redactSecrets(String(reason)), 400))}</code>`;
+    || L(`код ${result.code}`, `exit code ${result.code}`);
+  const html = `⚠️ <b>${L("Запуск не удался", "Launch failed")}</b>\n<code>${escapeHtml(truncateText(redactSecrets(String(reason)), 400))}</code>`;
   const ctx = { sessionId, title: session.title, project: session.project, cwd: session.cwd, host: "Claude Code" };
   await deliver(settings, ctx, [html]).catch((error) => logLine(`worker ${sessionId} report: ${error.message}`));
 }
@@ -295,33 +296,34 @@ export async function runWorker(sessionId, { exec = execClaude } = {}) {
 
 // ---------------------------------------------------------------- spawn confirm
 
+const quoted = (text) => L(`«${text}»`, `“${text}”`);
 const spawnFacts = (spec) =>
-  `«${escapeHtml(spec.title)}» · ${escapeHtml(spec.project || "—")} · ${escapeHtml(spec.model)}`;
+  `${quoted(escapeHtml(spec.title))} · ${escapeHtml(spec.project || "—")} · ${escapeHtml(spec.model)}`;
 const briefQuote = (spec) =>
   `<blockquote>${escapeHtml(truncateText(oneLine(redactSecrets(spec.brief)), 300))}</blockquote>`;
 
 export function spawnQuestion(spec) {
   const details = [
-    spec.parent ? `родитель «${escapeHtml(spec.parent)}»` : "",
+    spec.parent ? `${L("родитель", "parent")} ${quoted(escapeHtml(spec.parent))}` : "",
     `effort ${escapeHtml(spec.effort)}`,
     escapeHtml(spec.permissionMode),
-    spec.requestedBy ? `просит «${escapeHtml(spec.requestedBy)}»` : "",
+    spec.requestedBy ? `${L("просит", "requested by")} ${quoted(escapeHtml(spec.requestedBy))}` : "",
   ].filter(Boolean).join(" · ");
-  return `🚀 <b>Запустить сессию ${spawnFacts(spec)}?</b>\n${briefQuote(spec)}\n<i>${details}</i>`;
+  return `🚀 <b>${L("Запустить сессию", "Start session")} ${spawnFacts(spec)}?</b>\n${briefQuote(spec)}\n<i>${details}</i>`;
 }
 
 export function spawnOutcome(spec, outcome, reason = "") {
-  if (outcome === "started") return `▶️ <b>Запущена сессия ${spawnFacts(spec)}</b>\n${briefQuote(spec)}`;
-  if (outcome === "cancelled") return `✕ <b>Отменено:</b> сессия ${spawnFacts(spec)}`;
-  if (outcome === "expired") return `⌛ <i>Запрос устарел:</i> сессия ${spawnFacts(spec)}`;
-  return `⚠️ <b>Не удалось запустить</b> ${spawnFacts(spec)}\n<code>${escapeHtml(truncateText(redactSecrets(reason), 300))}</code>`;
+  if (outcome === "started") return `▶️ <b>${L("Запущена сессия", "Started session")} ${spawnFacts(spec)}</b>\n${briefQuote(spec)}`;
+  if (outcome === "cancelled") return L(`✕ <b>Отменено:</b> сессия ${spawnFacts(spec)}`, `✕ <b>Cancelled:</b> session ${spawnFacts(spec)}`);
+  if (outcome === "expired") return L(`⌛ <i>Запрос устарел:</i> сессия ${spawnFacts(spec)}`, `⌛ <i>Request expired:</i> session ${spawnFacts(spec)}`);
+  return `⚠️ <b>${L("Не удалось запустить", "Could not start")}</b> ${spawnFacts(spec)}\n<code>${escapeHtml(truncateText(redactSecrets(reason), 300))}</code>`;
 }
 
 export function spawnKeyboard(requestId) {
   return {
     inline_keyboard: [[
-      { text: "▶️ Запустить", callback_data: `s:${requestId}:go`, style: "success" },
-      { text: "✕ Отмена", callback_data: `s:${requestId}:no` },
+      { text: L("▶️ Запустить", "▶️ Start"), callback_data: `s:${requestId}:go`, style: "success" },
+      { text: L("✕ Отмена", "✕ Cancel"), callback_data: `s:${requestId}:no` },
     ]],
   };
 }
@@ -388,7 +390,7 @@ export async function handleSpawnPress(settings, route) {
     delete state.spawns[route.requestId];
     return item;
   });
-  if (!request) return toast("Запрос уже закрыт");
+  if (!request) return toast(L("Запрос уже закрыт", "Request already closed"));
   const edit = (html) =>
     editNotification(settings, "editMessageText", {
       chat_id: route.chatId,
@@ -399,20 +401,20 @@ export async function handleSpawnPress(settings, route) {
     }).catch((error) => logLine(`edit spawn: ${error.message}`));
   if (Date.now() - request.createdAt > SPAWN_TTL_MS) {
     await edit(spawnOutcome(request.spec, "expired"));
-    return toast("Запрос устарел");
+    return toast(L("Запрос устарел", "Request expired"));
   }
   if (!route.go) {
     await edit(spawnOutcome(request.spec, "cancelled"));
-    return toast("Отменено");
+    return toast(L("Отменено", "Cancelled"));
   }
   try {
     await startWorker(request.spec);
   } catch (error) {
     await edit(spawnOutcome(request.spec, "failed", error.message));
-    return toast("Не удалось запустить");
+    return toast(L("Не удалось запустить", "Could not start"));
   }
   await edit(spawnOutcome(request.spec, "started"));
-  return toast("Запускаю");
+  return toast(L("Запускаю", "Starting"));
 }
 
 /** Daemon tick: deliver queued messages to idle workers, expire old spawn requests. */
@@ -478,7 +480,7 @@ export async function notifyBoss(sessionId, text, { now = Date.now() } = {}) {
     stamps[sid] = now;
     return {
       bossId,
-      from: state.sessions[sid]?.title ?? "Сессия",
+      from: state.sessions[sid]?.title ?? L("Сессия", "Session"),
       headless: Boolean(state.sessions[bossId]?.headless),
       dormant: !live,
     };

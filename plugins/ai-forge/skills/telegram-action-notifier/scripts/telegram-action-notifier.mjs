@@ -3,6 +3,7 @@ import process from "node:process";
 import { pathToFileURL } from "node:url";
 
 import {
+  REPLY_PREFIX,
   TOPIC_REASON_TEXT,
   addPending,
   buildKeyboard,
@@ -50,6 +51,7 @@ import { createHash } from "node:crypto";
 import { decideDelivery, detectPresence, effectiveMode } from "./lib/presence.mjs";
 import { QUESTION_WAIT_SEC } from "./lib/questions.mjs";
 import { addGrant, deniedCallHtml, grantKeyboard, isNoVerdict, takeGrant } from "./lib/grants.mjs";
+import { L } from "./lib/i18n.mjs";
 
 export { configurationPath, hostName, isClaudeCode, redactSecrets };
 
@@ -57,9 +59,11 @@ const ACTION_MARKER = "ACTION_REQUIRED:";
 const SESSION_CONTEXT =
   "When a task cannot continue without a concrete user approval, answer, choice, credential, login, or external action, start the final user-facing request with exactly ACTION_REQUIRED:. Use this marker only for blocking user action, never for optional next steps or completed work. Do not include secrets. A Telegram hook watches for this marker.";
 const CLAUDE_CHAT_CONTEXT =
-  " If auto mode blocks a tool call, the owner may approve that exact call in Telegram; when you are then told you may retry it, repeat the identical call once (same input). Your final messages are also posted to the user's Telegram. A system reminder that starts with \"Сообщение пользователя из Telegram:\" is a genuine message the user sent to this session from Telegram: treat it as the user's next prompt and reply normally.";
-const TEST_MESSAGE =
-  "✅ Telegram Action Notifier подключён. Codex и Claude Code смогут присылать сюда запросы на ваше действие.";
+  ` If auto mode blocks a tool call, the owner may approve that exact call in Telegram; when you are then told you may retry it, repeat the identical call once (same input). Your final messages are also posted to the user's Telegram. A system reminder that starts with "${REPLY_PREFIX}" or "Telegram: " is a genuine message the user sent to this session from Telegram: treat it as the user's next prompt and reply normally.`;
+const TEST_MESSAGE = L(
+  "✅ Telegram Action Notifier подключён. Codex и Claude Code смогут присылать сюда запросы на ваше действие.",
+  "✅ Telegram Action Notifier is connected. Codex and Claude Code can now send requests for your action here.",
+);
 
 export function requiresUserAction(message) {
   if (typeof message !== "string") return false;
@@ -87,17 +91,20 @@ export function approvalBody(event, { buttons = false } = {}) {
   const description =
     typeof event?.tool_input?.description === "string" && event.tool_input.description.trim()
       ? event.tool_input.description.trim()
-      : `${host} запрашивает разрешение на действие.`;
-  const lines = [`Нужно разрешение: <code>${escapeHtml(tool)}</code>`];
+      : L(`${host} запрашивает разрешение на действие.`, `${host} is asking for permission to act.`);
+  const lines = [`${L("Нужно разрешение", "Permission needed")}: <code>${escapeHtml(tool)}</code>`];
   lines.push(`<blockquote>${escapeHtml(shortenPaths(redactSecrets(description), event?.cwd))}</blockquote>`);
   const file = event?.tool_input?.file_path ?? event?.tool_input?.notebook_path;
   if (typeof file === "string" && file) {
-    lines.push(`Файл: <code>${escapeHtml(shortenPaths(file, event?.cwd))}</code>`);
+    lines.push(`${L("Файл", "File")}: <code>${escapeHtml(shortenPaths(file, event?.cwd))}</code>`);
   }
   lines.push(
     buttons
-      ? "<i>Ответьте кнопкой ниже или в приложении.</i>"
-      : `<i>Откройте ${escapeHtml(host)} и подтвердите или отклоните запрос.</i>`,
+      ? L("<i>Ответьте кнопкой ниже или в приложении.</i>", "<i>Answer with a button below or in the app.</i>")
+      : L(
+        `<i>Откройте ${escapeHtml(host)} и подтвердите или отклоните запрос.</i>`,
+        `<i>Open ${escapeHtml(host)} to approve or deny the request.</i>`,
+      ),
   );
   return lines.join("\n");
 }
@@ -110,7 +117,7 @@ export function buildMessageParts(event, { title, kind, buttons = false } = {}) 
   const type = event?.hook_event_name;
   const cwd = typeof event?.cwd === "string" ? event.cwd : "";
   const project = projectName(cwd);
-  const sessionTitle = title || project || "Сессия";
+  const sessionTitle = title || project || L("Сессия", "Session");
   const host = hostName();
   if (type === "PermissionRequest") {
     const header = buildHeader({ kind: "approval", title: sessionTitle, project, host });
@@ -307,7 +314,10 @@ async function onPreToolUse(event) {
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
       permissionDecision: "allow",
-      permissionDecisionReason: "Владелец разрешил этот вызов один раз в Telegram или Discord",
+      permissionDecisionReason: L(
+        "Владелец разрешил этот вызов один раз в Telegram или Discord",
+        "The owner allowed this call once in Telegram or Discord",
+      ),
     },
   }));
 }
@@ -428,7 +438,7 @@ function bossContext(state) {
   const session = bossId ? state.sessions[bossId] : null;
   return {
     sessionId: bossId,
-    title: session?.title ?? "Босс",
+    title: session?.title ?? L("Босс", "Boss"),
     project: session?.project ?? "",
     cwd: session?.cwd ?? "",
     host: session?.host ?? "Claude Code",
@@ -544,8 +554,9 @@ const CLI = {
       quietHours: settings.quietHours,
       actionGraceSec: settings.actionGraceSec,
     });
-    const header = buildHeader({ kind: "action", title: "Босс", host: "" });
-    const parts = renderMessages({ header, body: text, label: "Босс" });
+    const boss = L("Босс", "Boss");
+    const header = buildHeader({ kind: "action", title: boss, host: "" });
+    const parts = renderMessages({ header, body: text, label: boss });
     if (decision.action === "skip") return console.log("Not sent: delivery is off or paused.");
     if (decision.action === "delay") {
       await addPending({ kind: "alert", ctx, parts, silent: decision.silent, delaySec: decision.delaySec });

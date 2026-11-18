@@ -18,6 +18,7 @@ import {
   saveConfiguration,
   setTargetChat,
 } from "./skills/telegram-action-notifier/scripts/lib/common.mjs";
+import { L } from "./skills/telegram-action-notifier/scripts/lib/i18n.mjs";
 
 async function readHidden(prompt) {
   if (!process.stdin.isTTY || !process.stdout.isTTY) {
@@ -145,7 +146,10 @@ async function main() {
     else await setTargetChat(chatId);
 
     await sendTelegram(
-      "✅ Telegram Action Notifier подключён. Codex и Claude Code смогут присылать сюда запросы на ваше действие.",
+      L(
+        "✅ Telegram Action Notifier подключён. Codex и Claude Code смогут присылать сюда запросы на ваше действие.",
+        "✅ Telegram Action Notifier is connected. Codex and Claude Code can now send requests for your action here.",
+      ),
       { strict: true },
     );
 
