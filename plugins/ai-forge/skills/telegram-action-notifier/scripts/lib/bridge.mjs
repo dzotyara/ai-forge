@@ -1026,6 +1026,8 @@ export function approvalKeyboard(requestId) {
 export const OUTCOME_TEXT = {
   allow: "✅ <b>Разрешено в Telegram</b>",
   deny: "❌ <b>Отклонено в Telegram</b>",
+  "allow-discord": "✅ <b>Разрешено в Discord</b>",
+  "deny-discord": "❌ <b>Отклонено в Discord</b>",
   timeout: "⏱ <i>Ответа нет — решите в приложении</i>",
   "timeout-denied": "⏱ <i>Ответа нет — запрос отклонён</i>",
   cancelled: "↩️ <i>Запрос закрыт в приложении</i>",
@@ -1136,7 +1138,7 @@ export function permissionDecision(behavior) {
       decision:
         behavior === "allow"
           ? { behavior: "allow" }
-          : { behavior: "deny", message: "Отклонено пользователем в Telegram" },
+          : { behavior: "deny", message: "Отклонено пользователем кнопкой в Telegram или Discord" },
     },
   };
 }
@@ -1534,7 +1536,8 @@ async function handleCallback(settings, route) {
   await editNotification(settings, "editMessageText", {
     chat_id: route.chatId,
     message_id: route.messageId,
-    text: `${request.html}\n\n${OUTCOME_TEXT[route.behavior]}`,
+    // Say where the owner pressed: a Discord token is an object with a channel.
+    text: `${request.html}\n\n${OUTCOME_TEXT[settings.token?.channel ? `${route.behavior}-discord` : route.behavior]}`,
     parse_mode: "HTML",
     link_preview_options: { is_disabled: true },
   }).catch((error) => logLine(`edit after button: ${error.message}`));

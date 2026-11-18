@@ -1,3 +1,4 @@
+import "./lang-ru.mjs";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
@@ -221,7 +222,7 @@ test("permission decision JSON", () => {
   assert.deepEqual(bridge.permissionDecision("allow").hookSpecificOutput.decision, { behavior: "allow" });
   assert.deepEqual(bridge.permissionDecision("deny").hookSpecificOutput.decision, {
     behavior: "deny",
-    message: "Отклонено пользователем в Telegram",
+    message: "Отклонено пользователем кнопкой в Telegram или Discord",
   });
 });
 

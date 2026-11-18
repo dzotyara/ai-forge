@@ -307,7 +307,7 @@ async function onPreToolUse(event) {
     hookSpecificOutput: {
       hookEventName: "PreToolUse",
       permissionDecision: "allow",
-      permissionDecisionReason: "Владелец разрешил этот вызов один раз в Telegram",
+      permissionDecisionReason: "Владелец разрешил этот вызов один раз в Telegram или Discord",
     },
   }));
 }

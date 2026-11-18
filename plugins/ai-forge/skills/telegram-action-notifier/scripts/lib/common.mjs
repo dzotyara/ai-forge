@@ -104,6 +104,8 @@ export function resolveSettings(raw = {}, env = process.env) {
   const ownerUserId =
     text(raw.ownerUserId) || legacyOwner || (isPrivateChatId(chatId) ? chatId : "");
   return {
+    // Interface language: "en" (default) or "ru". See i18n.mjs.
+    language: raw.language === "ru" ? "ru" : "en",
     deliveryMode: ["smart", "always", "never"].includes(raw.deliveryMode) ? raw.deliveryMode : "smart",
     notificationTarget: ["telegram", "discord", "both"].includes(raw.notificationTarget) ? raw.notificationTarget : "telegram",
     discordToken: env.DISCORD_BOT_TOKEN?.trim() || text(raw.discordToken),

@@ -1,3 +1,4 @@
+import "./lang-ru.mjs";
 import assert from "node:assert/strict";
 import { mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import http from "node:http";
