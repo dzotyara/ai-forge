@@ -53,6 +53,10 @@ import { decideDelivery, detectPresence, effectiveMode } from "./lib/presence.mj
 import { QUESTION_WAIT_SEC } from "./lib/questions.mjs";
 import { addGrant, deniedCallHtml, grantKeyboard, isNoVerdict, takeGrant } from "./lib/grants.mjs";
 import { L } from "./lib/i18n.mjs";
+import { ensurePresenceReporter, runPresenceReporter } from "./lib/devices.mjs";
+import { discordSettings } from "./lib/common.mjs";
+import { daemonStatus, refreshActiveTranscripts, stateDir, workingSessions } from "./lib/bridge.mjs";
+import { fileURLToPath } from "node:url";
 
 export { configurationPath, hostName, isClaudeCode, redactSecrets };
 
@@ -622,6 +626,11 @@ const CLI = {
 /** Dispatch one hook event (stdin JSON already parsed). */
 export async function handleEvent(event) {
   const settings = await loadSettings();
+  // Codex has no daemon: its hooks keep a small reporter alive so other devices
+  // (and the Discord status) see how many Codex sessions work here.
+  if (!isClaudeCode() && settings.notificationTarget !== "telegram" && discordSettings(settings)) {
+    await ensurePresenceReporter(stateDir(), fileURLToPath(import.meta.url)).catch(() => {});
+  }
 
   if (event.hook_event_name === "SessionStart") {
     await onSessionStart(event);
@@ -672,6 +681,21 @@ export async function run(argv = process.argv.slice(2)) {
     }
     if (command === "daemon") {
       await runDaemon();
+      process.exit(0);
+    }
+    if (command === "presence") {
+      const discord = discordSettings(await loadSettings());
+      if (discord) {
+        await runPresenceReporter({
+          discord,
+          stateDir: stateDir(),
+          claudeWorking: async () => {
+            await refreshActiveTranscripts();
+            return workingSessions(await readState());
+          },
+          daemonAlive: async () => (await daemonStatus()).running,
+        });
+      }
       process.exit(0);
     }
     if (command === "wait-reply") {

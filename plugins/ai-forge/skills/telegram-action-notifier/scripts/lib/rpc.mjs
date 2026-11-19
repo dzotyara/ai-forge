@@ -134,10 +134,10 @@ export const REPO_URL = "https://github.com/dzotyara/ai-forge";
  * The activity for the owner's profile: working sessions, how long the forge runs,
  * and a button to the repository (Discord shows buttons to other people, not to you).
  */
-export function richPresenceActivity({ working, startedAt, imageUrl }) {
+export function richPresenceActivity({ working, startedAt, imageUrl, hosts = "Claude Code" }) {
   return {
     details: working ? L(`Агентов в работе: ${working}`, `Agents working: ${working}`) : L("Ждёт задач", "Waiting for tasks"),
-    state: "Claude Code",
+    state: hosts,
     timestamps: { start: Math.floor(startedAt / 1000) },
     ...(imageUrl ? { assets: { large_image: imageUrl, large_text: "AI Forge · github.com/dzotyara/ai-forge" } } : {}),
     buttons: [{ label: L("⭐ AI Forge на GitHub", "⭐ AI Forge on GitHub"), url: REPO_URL }],
