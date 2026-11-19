@@ -26,7 +26,7 @@ test("Discord and Rich Presence texts are English", () => {
   const mute = slashCommands([{ command: "mute", description: "Pause" }])[0];
   assert.equal(mute.options[0].name, "duration");
   const activity = richPresenceActivity({ working: 2, startedAt: 0 });
-  assert.equal(activity.details, "Sessions working: 2");
+  assert.equal(activity.details, "Agents working: 2");
   assert.equal(activity.buttons[0].label, "⭐ AI Forge on GitHub");
   assert.match(buildHeader({ kind: "turn" }), /Session/);
 });

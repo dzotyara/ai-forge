@@ -1841,13 +1841,50 @@ export function discordActivity(settings, state, now = Date.now()) {
 }
 
 /** Claude Code sessions that posted in the last 30 minutes. */
-export function workingSessions(state, now = Date.now(), alive = pidAlive) {
+// Claude Code writes the transcript while a session works, its subagents included,
+// so a transcript written in the last 90 s means the session is working. This also
+// catches sessions whose hooks predate turn tracking. Refreshed by the daemon tick.
+const TRANSCRIPT_ACTIVE_MS = 90_000;
+let activeTranscriptIds = new Set();
+
+/**
+ * Scan ~/.claude/projects for transcripts written recently: "<session id>" for a
+ * session, "<session id>/<agent file>" for each of its running subagents.
+ */
+export async function refreshActiveTranscripts(now = Date.now(), root = path.join(os.homedir(), ".claude", "projects")) {
+  const ids = new Set();
+  const fresh = async (file) => now - (await fsp.stat(file)).mtimeMs < TRANSCRIPT_ACTIVE_MS;
+  const projects = await fsp.readdir(root).catch(() => []);
+  await Promise.all(projects.map(async (project) => {
+    const dir = path.join(root, project);
+    const entries = await fsp.readdir(dir, { withFileTypes: true }).catch(() => []);
+    for (const entry of entries) {
+      try {
+        if (entry.isFile() && entry.name.endsWith(".jsonl")) {
+          if (await fresh(path.join(dir, entry.name))) ids.add(entry.name.slice(0, -6));
+        } else if (entry.isDirectory()) {
+          const sub = path.join(dir, entry.name, "subagents");
+          for (const file of await fsp.readdir(sub).catch(() => [])) {
+            // Every running subagent is a worker of its own: "<session>/<agent file>".
+            if (await fresh(path.join(sub, file))) ids.add(`${entry.name}/${file}`);
+          }
+        }
+      } catch { /* a file can vanish between readdir and stat */ }
+    }
+  }));
+  activeTranscriptIds = ids;
+  return ids;
+}
+
+export function workingSessions(state, now = Date.now(), alive = pidAlive, active = activeTranscriptIds) {
   // A session works while a turn is in progress: from UserPromptSubmit (or a wake-up
-  // from the chat) to Stop. Child sessions count like any other; a headless worker
-  // also counts while its claude -p run is alive. A turn with no Stop for hours is stale.
-  const ids = new Set(Object.entries(state.meta?.turns ?? {})
+  // from the chat) to Stop, or while its transcript is being written. Child sessions
+  // count like any other; a headless worker also counts while its claude -p run is
+  // alive. A turn with no Stop for hours is stale.
+  const ids = new Set([...active].filter((id) => !state.sessions?.[id.split("/")[0]]?.ended));
+  for (const id of Object.entries(state.meta?.turns ?? {})
     .filter(([id, at]) => now - at < TURN_STALE_MS && !state.sessions?.[id]?.ended)
-    .map(([id]) => id));
+    .map(([id]) => id)) ids.add(id);
   for (const [id, session] of Object.entries(state.sessions ?? {})) {
     if (session.headless && session.run && alive(session.run.pid)) ids.add(id);
   }
@@ -1885,6 +1922,7 @@ export async function runDaemon({ idleMs = DAEMON_IDLE_MS, tickMs = 5000, presen
   const startedAt = Date.now();
   let stopping = false;
   let discordLink = null;
+  let transcriptsAt = 0;
   let richPresence = null;
   let richPresenceImage = "";
   const release = async () => {
@@ -1916,6 +1954,9 @@ export async function runDaemon({ idleMs = DAEMON_IDLE_MS, tickMs = 5000, presen
   const discord = settings.notificationTarget === "telegram" ? null : discordSettings(settings);
   const telegramEnabled = !settings.token?.channel;
   if (discord) {
+    // Count working agents before the first status goes out, not one tick later.
+    await refreshActiveTranscripts().catch(() => {});
+    transcriptsAt = Date.now();
     const report = (error) => { void logLine(`Discord: ${error.message}`); };
     discordLink = connectDiscord(discord.token, discordInbound(settings, discord, presenceNow, report), report, {
       activity: discordActivity(settings, await readState()),
@@ -1948,6 +1989,10 @@ export async function runDaemon({ idleMs = DAEMON_IDLE_MS, tickMs = 5000, presen
         const current = await presenceNow();
         await processPending(settings, current);
         await (await import("./workers.mjs")).tickWorkers(settings);
+        if (Date.now() - transcriptsAt > 15_000) {
+          transcriptsAt = Date.now();
+          await refreshActiveTranscripts().catch(() => {});
+        }
         const now = await readState();
         discordLink?.setActivity(discordActivity(settings, now));
         richPresence?.set(richPresenceActivity({ working: workingSessions(now), startedAt, imageUrl: richPresenceImage }));

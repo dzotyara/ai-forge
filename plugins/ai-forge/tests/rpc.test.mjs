@@ -50,7 +50,7 @@ test("Rich Presence: handshake, activity after READY, pong, clears on close, wai
     const activity = seen.find((f) => f.op === 1).data;
     assert.equal(activity.cmd, "SET_ACTIVITY");
     assert.equal(activity.args.pid, process.pid);
-    assert.deepEqual(activity.args.activity, { details: "Сессий в работе: 2", state: "Claude Code", timestamps: { start: 1000 },
+    assert.deepEqual(activity.args.activity, { details: "Агентов в работе: 2", state: "Claude Code", timestamps: { start: 1000 },
       buttons: [{ label: "⭐ AI Forge на GitHub", url: "https://github.com/dzotyara/ai-forge" }] });
     assert.ok(seen.some((f) => f.op === 4), "pong");
     presence.set(richPresenceActivity({ working: 2, startedAt: 1_000_000 }));

@@ -58,7 +58,7 @@ Use Discord, Telegram, or both. With both, a request shows up in both places and
 | ![Approved in Discord](docs/discord-answered.png) | ![Background session request in the main channel](docs/discord-spawn.png) |
 | A permission and a question answered from Discord; only you see the confirmation | The Boss asks before starting a background session |
 | ![Your Discord profile while sessions work](docs/discord-rich-presence.png) | ![Settings panel](docs/settings-panel.png) |
-| Your Discord profile shows how many sessions are working | The local settings panel, with an English / Русский switch |
+| Your Discord profile shows how many agents are working | The local settings panel, with an English / Русский switch |
 | ![A session topic in Telegram](docs/telegram-session.png) | ![Answered from Telegram](docs/telegram-answered.png) |
 | The same session in a Telegram topic | Allowed and answered from Telegram, then a reply |
 
@@ -133,7 +133,7 @@ In Discord every message is silent, and only the ones that need you mention you.
 
 ### Discord status
 
-While the background service runs, the bot shows "Playing AI Forge · working: N", where N is the number of sessions with a turn in progress, child and background sessions included. If Discord is open on the same Mac, your own profile shows it too: how many sessions are working, for how long, and a button to this repo for people who look at your profile (Discord hides your own buttons from you). This needs **Settings → Activity Privacy → Share my activity** in Discord.
+While the background service runs, the bot shows "Playing AI Forge · working: N", where N counts every agent working right now: sessions in the middle of a turn or writing to their transcript in the last 90 seconds, child sessions, background sessions, and each running subagent. If Discord is open on the same Mac, your own profile shows it too: how many agents are working, for how long, and a button to this repo for people who look at your profile (Discord hides your own buttons from you). This needs **Settings → Activity Privacy → Share my activity** in Discord.
 
 ## Settings
 
