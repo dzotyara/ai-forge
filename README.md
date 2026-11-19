@@ -129,7 +129,7 @@ By default AI Forge stays quiet while you're at your computer and pings you only
 | The agent needs you | right away, with a ping | after 180 s, if you haven't answered |
 | A turn finished | silently | not sent |
 
-In Discord every message is silent, and only the ones that need you mention you. During quiet hours (`quietHours`) the mention stays but makes no sound.
+In Discord every message is silent, and only the ones that need you mention you. During quiet hours (`quietHours`) the mention stays but makes no sound. Once you answer in the app, the bot removes the mention from that message.
 
 ### Discord status
 

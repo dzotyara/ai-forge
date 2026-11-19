@@ -300,3 +300,32 @@ test("an approval pressed in Discord says Discord, not Telegram", async () => {
   assert.match(OUTCOME_TEXT["allow-discord"], /Discord/);
   assert.match(OUTCOME_TEXT["deny-discord"], /Discord/);
 });
+
+test("a ping is removed once the question is settled, text and buttons stay", async (t) => {
+  const calls = [];
+  t.mock.method(globalThis, "fetch", async (url, options) => {
+    calls.push([options.method, new URL(url).pathname, options.body ? JSON.parse(options.body) : null]);
+    if (options.method === "GET") return Response.json({ id, content: `<@${bot.owner}> 🔔 Need you` });
+    return Response.json({ id });
+  });
+  await discordCall(bot, "removeOwnerMention", { message_id: `${thread}:${id}` });
+  assert.deepEqual(calls[1], ["PATCH", `/api/v10/channels/${thread}/messages/${id}`,
+    { content: "🔔 Need you", allowed_mentions: { parse: [], replied_user: false } }]);
+  calls.length = 0;
+  t.mock.method(globalThis, "fetch", async (url, options) => {
+    calls.push(options.method);
+    return Response.json({ id, content: "no ping here" });
+  });
+  await discordCall(bot, "removeOwnerMention", { message_id: `${thread}:${id}` });
+  assert.deepEqual(calls, ["GET"], "nothing to remove");
+});
+
+test("an action answered in the app is kept for the daemon to unping", async () => {
+  const { resolvePendingIn } = await import("../skills/telegram-action-notifier/scripts/lib/bridge.mjs");
+  const state = { pending: {
+    a: { id: "a", sessionId: "s", kind: "action", sent: true, messageIds: [5], createdAt: 1 },
+    b: { id: "b", sessionId: "s", kind: "action", sent: false, createdAt: 2 },
+  } };
+  assert.equal(resolvePendingIn(state, "s", { kinds: ["action"], edit: false }), 1);
+  assert.deepEqual([state.pending.a.resolved, state.pending.a.keepText, state.pending.b], [true, true, undefined]);
+});
