@@ -91,3 +91,12 @@ test("blocking stop gets the bell, session title and project in the header", () 
   assert.equal(first.includes("ACTION_REQUIRED"), false);
   assert.equal(first.includes("/Users/me"), false);
 });
+
+test("a turn counts from UserPromptSubmit to Stop", async () => {
+  const bridgeMod = await import("../skills/telegram-action-notifier/scripts/lib/bridge.mjs");
+  await bridgeMod.markTurn("turn-s", true);
+  assert.equal(bridgeMod.workingSessions(await bridgeMod.readState()) >= 1, true);
+  assert.ok((await bridgeMod.readState()).meta.turns["turn-s"]);
+  await bridgeMod.markTurn("turn-s", false);
+  assert.equal((await bridgeMod.readState()).meta.turns["turn-s"], undefined);
+});

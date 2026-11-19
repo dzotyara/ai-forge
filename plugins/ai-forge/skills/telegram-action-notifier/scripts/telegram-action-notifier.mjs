@@ -15,6 +15,7 @@ import {
   isTelegramPrompt,
   logLine,
   markSessionEnded,
+  markTurn,
   permissionDecision,
   pidAlive,
   questionDecision,
@@ -182,6 +183,7 @@ async function decide(kind, settings, session, meta) {
 const isHeadless = (session) => process.env.TELEGRAM_BRIDGE_HEADLESS === "1" || Boolean(session?.headless);
 
 async function onStop(event, settings) {
+  if (event.session_id) await markTurn(event.session_id, false).catch(() => {});
   const message = event.last_assistant_message;
   if (typeof message !== "string" || !message.trim()) return;
   const ctx = await sessionContext(event, hostName());
@@ -325,6 +327,7 @@ async function onPreToolUse(event) {
 async function onUserPromptSubmit(event) {
   if (!event.session_id) return;
   const sessionId = safeSessionId(event.session_id);
+  await markTurn(sessionId, true).catch(() => {});
   const fromTelegram = isTelegramPrompt(event.prompt);
   // Answered: cancel timers; mark sent messages "решено в приложении" unless the answer came from Telegram.
   await resolvePending(sessionId, { edit: !fromTelegram });
@@ -626,6 +629,7 @@ export async function handleEvent(event) {
   }
   if (event.hook_event_name === "SessionEnd") {
     await markSessionEnded(event.session_id);
+    await markTurn(event.session_id, false).catch(() => {});
     return;
   }
   if (event.hook_event_name === "UserPromptSubmit") {

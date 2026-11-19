@@ -220,16 +220,16 @@ test("gateway: Playing status on identify, updates on change, resumes after a dr
   }
 });
 
-test("Playing status counts sessions that posted in the last 30 minutes", () => {
+test("Playing status counts sessions with a turn in progress, children and headless runs included", () => {
   const now = 10 * 3600_000;
   const settings = resolveSettings({}, {});
-  const sessions = {
-    a: { lastPostAt: now - 60_000 }, b: { lastPostAt: now - 31 * 60_000 }, c: { lastPostAt: now, ended: true },
-    d: { lastPostAt: now, host: "Codex" },
+  const state = {
+    meta: { turns: { app: now - 60_000, child: now - 5_000, stale: now - 4 * 3600_000, gone: now } },
+    sessions: { app: {}, child: { parent: "app" }, stale: {}, gone: { ended: true }, worker: { headless: true, run: { pid: 1 } }, idle: { headless: true } },
   };
-  assert.equal(discordActivity(settings, { sessions: {} }, now), "AI Forge");
-  assert.equal(discordActivity(settings, { sessions }, now), "AI Forge · в работе: 1");
-  assert.equal(discordActivity(resolveSettings({ discordActivity: "" }, {}), { sessions }, now), "");
+  assert.equal(discordActivity(settings, { sessions: {}, meta: {} }, now), "AI Forge");
+  assert.equal(discordActivity(settings, state, now), "AI Forge · в работе: 3");
+  assert.equal(discordActivity(resolveSettings({ discordActivity: "" }, {}), state, now), "");
 });
 
 test("gateway: without the Message Content intent it reconnects for buttons, commands and status", async () => {

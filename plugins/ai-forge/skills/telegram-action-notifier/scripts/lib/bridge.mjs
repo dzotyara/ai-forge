@@ -988,9 +988,13 @@ export async function waitForReply(event, { pollMs = 1000, maxMs = WAITER_MAX_MS
         await updateState((next) => {
           if (next.sessions[sessionId]) next.sessions[sessionId].replyToTelegram = true; // this turn answers in Telegram
         });
+        // The session is back at work: count it until its Stop.
+        await markTurn(sessionId, true);
         if (last) {
-          await telegram(settings.token, "setMessageReaction", {
-            chat_id: settings.chatId,
+          const fromDiscord = String(last.messageId).includes(":");
+          const target = fromDiscord ? discordSettings(settings) : settings;
+          await telegram(target?.token, "setMessageReaction", {
+            chat_id: target?.chatId,
             message_id: last.messageId,
             reaction: [{ type: "emoji", emoji: "👀" }],
           }, { timeoutMs: 5000 }).catch(() => {});
@@ -1827,7 +1831,6 @@ export function discordInbound(settings, discord, presenceNow, report) {
   };
 }
 
-const WORKING_WINDOW_MS = 30 * 60_000;
 
 /** "AI Forge", or "AI Forge · в работе: 3" while sessions post; "" turns it off. */
 export function discordActivity(settings, state, now = Date.now()) {
@@ -1838,9 +1841,31 @@ export function discordActivity(settings, state, now = Date.now()) {
 }
 
 /** Claude Code sessions that posted in the last 30 minutes. */
-export function workingSessions(state, now = Date.now()) {
-  return Object.values(state.sessions ?? {}).filter((s) => !s.ended && !s.closed && s.host !== "Codex" &&
-    now - (s.lastPostAt ?? 0) < WORKING_WINDOW_MS).length;
+export function workingSessions(state, now = Date.now(), alive = pidAlive) {
+  // A session works while a turn is in progress: from UserPromptSubmit (or a wake-up
+  // from the chat) to Stop. Child sessions count like any other; a headless worker
+  // also counts while its claude -p run is alive. A turn with no Stop for hours is stale.
+  const ids = new Set(Object.entries(state.meta?.turns ?? {})
+    .filter(([id, at]) => now - at < TURN_STALE_MS && !state.sessions?.[id]?.ended)
+    .map(([id]) => id));
+  for (const [id, session] of Object.entries(state.sessions ?? {})) {
+    if (session.headless && session.run && alive(session.run.pid)) ids.add(id);
+  }
+  return ids.size;
+}
+
+const TURN_STALE_MS = 3 * 3600_000;
+
+/** Record that a session started (true) or finished (false) a turn. */
+export async function markTurn(sessionId, active, now = Date.now()) {
+  if (!sessionId) return;
+  const sid = safeSessionId(sessionId);
+  await updateState((state) => {
+    const turns = (state.meta.turns ??= {});
+    if (active) turns[sid] = now;
+    else delete turns[sid];
+    for (const [id, at] of Object.entries(turns)) if (now - at >= TURN_STALE_MS) delete turns[id];
+  });
 }
 
 /** /status, /away, /here, /mute as guild slash commands; refreshed at most daily. */
