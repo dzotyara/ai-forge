@@ -1223,6 +1223,11 @@ export function resolvePendingIn(state, sessionId, { kinds = ["approval", "actio
     if (item.sent && edit) {
       item.resolved = true;
       toEdit += 1;
+    } else if (item.sent && item.messageIds?.length) {
+      // Keep the text, but the daemon still removes the Discord ping: nothing is waiting on the owner.
+      item.resolved = true;
+      item.keepText = true;
+      toEdit += 1;
     } else {
       delete state.pending[item.id];
     }
@@ -1237,6 +1242,18 @@ export async function resolvePending(sessionId, options) {
   const toEdit = await updateState((next) => resolvePendingIn(next, sessionId, options));
   if (toEdit) await ensureDaemon();
   return toEdit;
+}
+
+/** Remove the leading @owner mention from the Discord copy of a message (no-op elsewhere). */
+export async function clearOwnerMention(settings, messageId) {
+  const discord = discordSettings(settings);
+  if (!discord || messageId == null) return;
+  const id = String(messageId).includes(":")
+    ? messageId
+    : settings.notificationTarget === "both" ? await mirrorId(messageId) : null;
+  if (!id) return;
+  await telegram(discord.token, "removeOwnerMention", { message_id: id })
+    .catch((error) => logLine(`clear mention: ${error.message}`));
 }
 
 async function processPending(settings, presence) {
@@ -1255,7 +1272,8 @@ async function processPending(settings, presence) {
       const claimed = item.requestId
         ? await createExclusive(files.approval(item.requestId, "res"), { behavior: "app", at: now })
         : true;
-      if (claimed && item.messageIds?.length) {
+      if (item.messageIds?.length) await clearOwnerMention(settings, item.messageIds[0]);
+      if (claimed && item.messageIds?.length && !item.keepText) {
         await editNotification(settings, "editMessageText", {
           chat_id: settings.chatId,
           message_id: item.messageIds.at(-1),

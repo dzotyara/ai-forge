@@ -301,6 +301,14 @@ export async function discordCall(bot, method, params) {
       if (messagePath && emoji) return discordApi(bot, "PUT", `${messagePath}/reactions/${encodeURIComponent(emoji)}/@me`);
       return null;
     }
+    case "removeOwnerMention": {
+      // The question was settled elsewhere: drop the leading @owner ping, keep text and buttons.
+      if (!messagePath) return null;
+      const message = await discordApi(bot, "GET", messagePath);
+      const prefix = `<@${bot.owner}> `;
+      if (!message?.content?.startsWith(prefix)) return null;
+      return discordApi(bot, "PATCH", messagePath, { content: message.content.slice(prefix.length), allowed_mentions: allowedMentions });
+    }
     case "answerCallbackQuery": {
       // The daemon already acknowledged the press; Telegram's toast becomes a reply only the owner sees.
       const hook = String(params.callback_query_id ?? "");
