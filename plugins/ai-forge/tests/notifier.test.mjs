@@ -100,3 +100,26 @@ test("a turn counts from UserPromptSubmit to Stop", async () => {
   await bridgeMod.markTurn("turn-s", false);
   assert.equal((await bridgeMod.readState()).meta.turns["turn-s"], undefined);
 });
+
+test("working counts sessions and each running subagent", async () => {
+  const { mkdtempSync, mkdirSync, writeFileSync, utimesSync } = await import("node:fs");
+  const os = await import("node:os");
+  const path = await import("node:path");
+  const bridgeMod = await import("../skills/telegram-action-notifier/scripts/lib/bridge.mjs");
+  const root = mkdtempSync(path.join(os.tmpdir(), "projects-"));
+  const project = path.join(root, "-Users-me-app");
+  mkdirSync(path.join(project, "child-id", "subagents"), { recursive: true });
+  writeFileSync(path.join(project, "busy-id.jsonl"), "{}");
+  writeFileSync(path.join(project, "idle-id.jsonl"), "{}");
+  utimesSync(path.join(project, "idle-id.jsonl"), new Date(Date.now() - 600_000), new Date(Date.now() - 600_000));
+  writeFileSync(path.join(project, "child-id.jsonl"), "{}");
+  utimesSync(path.join(project, "child-id.jsonl"), new Date(Date.now() - 600_000), new Date(Date.now() - 600_000));
+  writeFileSync(path.join(project, "child-id", "subagents", "agent-1.jsonl"), "{}");
+  writeFileSync(path.join(project, "child-id", "subagents", "agent-2.jsonl"), "{}");
+  const ids = await bridgeMod.refreshActiveTranscripts(Date.now(), root);
+  assert.deepEqual([...ids].sort(), ["busy-id", "child-id/agent-1.jsonl", "child-id/agent-2.jsonl"]);
+  const state = { sessions: { "busy-id": {}, "child-id": {} }, meta: { turns: { "child-id": Date.now() } } };
+  // The parent mid-turn plus each of its two running subagents, plus the busy session.
+  assert.equal(bridgeMod.workingSessions(state, Date.now(), () => false, ids), 4);
+  assert.equal(bridgeMod.workingSessions({ sessions: { "busy-id": { ended: true } }, meta: {} }, Date.now(), () => false, ids), 2);
+});

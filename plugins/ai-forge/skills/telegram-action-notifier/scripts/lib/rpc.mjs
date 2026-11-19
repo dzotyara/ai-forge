@@ -136,7 +136,7 @@ export const REPO_URL = "https://github.com/dzotyara/ai-forge";
  */
 export function richPresenceActivity({ working, startedAt, imageUrl }) {
   return {
-    details: working ? L(`Сессий в работе: ${working}`, `Sessions working: ${working}`) : L("Ждёт задач", "Waiting for tasks"),
+    details: working ? L(`Агентов в работе: ${working}`, `Agents working: ${working}`) : L("Ждёт задач", "Waiting for tasks"),
     state: "Claude Code",
     timestamps: { start: Math.floor(startedAt / 1000) },
     ...(imageUrl ? { assets: { large_image: imageUrl, large_text: "AI Forge · github.com/dzotyara/ai-forge" } } : {}),
