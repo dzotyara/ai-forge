@@ -22,6 +22,7 @@ import {
 } from "./common.mjs";
 import { botUser, connectDiscord, discordApi, slashCommands } from "./discord.mjs";
 import { connectRichPresence, richPresenceActivity } from "./rpc.mjs";
+import { codexWorking, fleetTotals, otherDevices, reportDevice } from "./devices.mjs";
 import { escapeHtml, htmlToPlain, projectName, truncateText } from "./format.mjs";
 import { L } from "./i18n.mjs";
 import { detectPresence, effectiveMode, parseMuteDuration, pendingAction } from "./presence.mjs";
@@ -1851,10 +1852,11 @@ export function discordInbound(settings, discord, presenceNow, report) {
 
 
 /** "AI Forge", or "AI Forge · в работе: 3" while sessions post; "" turns it off. */
-export function discordActivity(settings, state, now = Date.now()) {
+export function discordActivity(settings, state, now = Date.now(), extra = 0) {
   const base = settings.discordActivity;
   if (!base) return "";
-  const working = workingSessions(state, now);
+  // `extra`: Codex sessions here plus agents on other devices (see devices.mjs).
+  const working = workingSessions(state, now) + extra;
   return working ? L(`${base} · в работе: ${working}`, `${base} · working: ${working}`) : base;
 }
 
@@ -1941,6 +1943,8 @@ export async function runDaemon({ idleMs = DAEMON_IDLE_MS, tickMs = 5000, presen
   let stopping = false;
   let discordLink = null;
   let transcriptsAt = 0;
+  let fleetAt = 0;
+  let fleet = { extra: 0, hosts: "Claude Code" };
   let richPresence = null;
   let richPresenceImage = "";
   const release = async () => {
@@ -2012,8 +2016,20 @@ export async function runDaemon({ idleMs = DAEMON_IDLE_MS, tickMs = 5000, presen
           await refreshActiveTranscripts().catch(() => {});
         }
         const now = await readState();
-        discordLink?.setActivity(discordActivity(settings, now));
-        richPresence?.set(richPresenceActivity({ working: workingSessions(now), startedAt, imageUrl: richPresenceImage }));
+        if (discord && Date.now() - fleetAt > 30_000) {
+          fleetAt = Date.now();
+          try {
+            // Publish this device, read the others: Codex here and agents elsewhere count too.
+            const own = { claude: workingSessions(now), codex: await codexWorking() };
+            await reportDevice(discord, stateDir(), own);
+            const totals = fleetTotals(own, await otherDevices(discord, stateDir()));
+            fleet = { extra: totals.working - own.claude, hosts: totals.hosts };
+          } catch (error) {
+            await logLine(`devices: ${error.message}`);
+          }
+        }
+        discordLink?.setActivity(discordActivity(settings, now, Date.now(), fleet.extra));
+        richPresence?.set(richPresenceActivity({ working: workingSessions(now) + fleet.extra, hosts: fleet.hosts, startedAt, imageUrl: richPresenceImage }));
         if (!telegramEnabled) await writeJsonAtomic(files.daemon(), { pid: process.pid, startedAt, lastPollAt: Date.now() });
         if (await hasLiveClients()) lastLive = Date.now();
         else if (Date.now() - lastLive > idleMs) return exit();

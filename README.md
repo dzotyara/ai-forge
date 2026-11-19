@@ -135,6 +135,14 @@ In Discord every message is silent, and only the ones that need you mention you.
 
 While the background service runs, the bot shows "Playing AI Forge · working: N", where N counts every agent working right now: sessions in the middle of a turn or writing to their transcript in the last 90 seconds, child sessions, background sessions, and each running subagent. If Discord is open on the same Mac, your own profile shows it too: how many agents are working, for how long, and a button to this repo for people who look at your profile (Discord hides your own buttons from you). This needs **Settings → Activity Privacy → Share my activity** in Discord.
 
+### Several devices and Codex
+
+The count covers all your devices. Each device keeps one line in the private `📡・presence` channel: its name, how many Claude Code agents and Codex sessions are working, and when it last reported. The daemon on each device adds up the lines that are fresher than two minutes, and the status shows where the work runs, for example "Claude Code · Codex".
+
+- Codex on the same Mac is counted from `~/.codex/sessions`.
+- On a device with only Codex, set up AI Forge with the same Discord bot. The Codex hooks start a small background reporter there. It exits after 30 minutes with nothing working.
+- A device that sleeps or goes offline drops out of the count after two minutes.
+
 ## Settings
 
 Everything is in the panel or in `~/.codex/telegram-action-notifier/config.json`. A missing key means the default.
