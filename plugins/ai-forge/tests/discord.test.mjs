@@ -1,3 +1,4 @@
+import "./lang-ru.mjs";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { connectDiscord, discordCall, discordUpdate, setupDiscord, slashCommands } from "../skills/telegram-action-notifier/scripts/lib/discord.mjs";
@@ -292,4 +293,10 @@ test("Discord is quiet by default and pings the owner only when they are needed"
   assert.equal(bodies[1].content, `<@${bot.owner}> Нужен ваш ответ`);
   assert.deepEqual(bodies[1].allowed_mentions.users, [bot.owner]);
   assert.match(bodies[2].content, /^<@\d+> Ночью/, "quiet hours: mention without a sound");
+});
+
+test("an approval pressed in Discord says Discord, not Telegram", async () => {
+  const { OUTCOME_TEXT } = await import("../skills/telegram-action-notifier/scripts/lib/bridge.mjs");
+  assert.match(OUTCOME_TEXT["allow-discord"], /Discord/);
+  assert.match(OUTCOME_TEXT["deny-discord"], /Discord/);
 });

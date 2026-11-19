@@ -1,3 +1,4 @@
+import "./lang-ru.mjs";
 import assert from "node:assert/strict";
 import { mkdtempSync } from "node:fs";
 import net from "node:net";

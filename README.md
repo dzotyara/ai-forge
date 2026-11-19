@@ -3,8 +3,8 @@
 </p>
 
 <p align="center">
-  <b>Сессии Claude Code в Discord и Telegram</b><br>
-  Разрешения, вопросы и ответы прямо с телефона, пока агенты работают на вашем Mac
+  <b>Claude Code sessions in Discord and Telegram</b><br>
+  Approve, answer and reply from your phone while your agents keep working on your Mac
 </p>
 
 <p align="center">
@@ -14,158 +14,175 @@
   <img src="https://img.shields.io/badge/node-%E2%89%A522-3c873a" alt="Node 22+">
 </p>
 
-> ⭐ Если AI Forge пригодился, поставьте звезду репозиторию. Так проект проще найти другим, а мне понятно, что его стоит развивать.
-
-## Что это
-
-AI Forge - плагин для Claude Code. Каждая сессия получает свой канал в Discord (или тему в Telegram), и всё, где агенту нужен человек, приходит туда с кнопками:
-
-- запрос разрешения на команду или правку - «✅ Разрешить» / «❌ Отклонить»
-- вопрос с вариантами (`AskUserQuestion`) - по кнопке на вариант
-- «нужно ваше действие» (`ACTION_REQUIRED`) и вопрос в конце хода
-- итог хода - тихо, без звука
-
-Ответить можно текстом прямо в канале: сообщение будит сессию, и она продолжает работу. Макбук доставать не нужно.
-
 <p align="center">
-  <img src="docs/discord-session.png" alt="Сессия в Discord: итог хода, запрос разрешения, вопрос с вариантами, нужно действие" width="90%">
+  <b>English</b> · <a href="README.ru.md">Русский</a>
 </p>
 
-## Возможности
+> ⭐ If AI Forge saves you a trip to your laptop, please star the repo. It helps other people find it and tells me it's worth building further.
+
+## What it is
+
+AI Forge is a Claude Code plugin. Every session gets its own Discord channel (or Telegram topic), and anything that needs a human shows up there with buttons:
+
+- a permission request for a command or an edit: **Allow** / **Deny**
+- a multiple-choice question (`AskUserQuestion`): one button per option
+- "I need you" turns (`ACTION_REQUIRED`) and the next-step question at the end of a turn
+- a summary of every finished turn, posted silently
+
+Reply with plain text in the channel and the session wakes up and keeps going. No need to walk back to your laptop.
+
+<p align="center">
+  <img src="docs/discord-session.png" alt="A session in Discord: a finished turn, a permission request, a question with options, and a reply" width="90%">
+</p>
+
+## Features
 
 | | Discord | Telegram |
 |---|---|---|
-| Канал или тема на каждую сессию | ✅ приватный канал `🤖・<название>` | ✅ тема в группе |
-| Кнопки разрешений и вопросов | ✅ | ✅ |
-| Ответ текстом или реплаем будит сессию | ✅ | ✅ |
-| Разрешить действие, заблокированное авто-режимом | ✅ | ✅ |
-| Босс в общем канале, фоновые сессии по команде | ✅ `🔥・general` | ✅ General |
-| Команды `/status` `/away` `/here` `/mute` | ✅ slash-команды | ✅ |
-| Тишина по умолчанию, пинг только когда нужны вы | ✅ | ✅ умная доставка |
-| Статус «Playing AI Forge» у бота и в вашем профиле | ✅ | - |
+| A channel or topic per session | ✅ private `🤖・<name>` channel | ✅ forum topic |
+| Buttons for permissions and questions | ✅ | ✅ |
+| A text reply or a reply-to wakes the session | ✅ | ✅ |
+| Allow once what auto mode blocked | ✅ | ✅ |
+| A Boss session in the main channel, background sessions on demand | ✅ `🔥・general` | ✅ General |
+| `/status` `/away` `/here` `/mute` | ✅ slash commands | ✅ |
+| Quiet by default, a ping only when you're needed | ✅ | ✅ smart delivery |
+| "Playing AI Forge" on the bot and on your profile | ✅ | — |
+| English and Russian interface | ✅ | ✅ |
 
-Можно включить Discord, Telegram или оба сразу. В режиме «оба» запрос виден в двух местах, а решение принимается один раз.
+Use Discord, Telegram, or both. With both, a request shows up in both places and the first answer wins.
 
-## Установка
+## Screenshots
 
-Нужны Claude Code и Node.js 22+. Умная доставка (определение, что вы за компьютером) работает на macOS, на других ОС считается, что вас нет.
+| | |
+|---|---|
+| ![Approved in Discord](docs/discord-answered.png) | ![Background session request in the main channel](docs/discord-spawn.png) |
+| A permission and a question answered from Discord; only you see the confirmation | The Boss asks before starting a background session |
+| ![Your Discord profile while sessions work](docs/discord-rich-presence.png) | ![Settings panel](docs/settings-panel.png) |
+| Your Discord profile shows how many sessions are working | The local settings panel, with an English / Русский switch |
+| ![A session topic in Telegram](docs/telegram-session.png) | ![Answered from Telegram](docs/telegram-answered.png) |
+| The same session in a Telegram topic | Allowed and answered from Telegram, then a reply |
+
+## Install
+
+You need Claude Code and Node.js 22+. Presence detection (whether you're at your computer) works on macOS; on other systems you're treated as away.
 
 ```bash
 claude plugin marketplace add dzotyara/ai-forge
 claude plugin install ai-forge@ai-forge
 ```
 
-Откройте панель настроек:
+Open the settings panel:
 
 ```bash
 node "$(ls -d ~/.claude/plugins/cache/ai-forge/ai-forge/*/ | tail -1)configure.mjs" --ui
 ```
 
-Панель локальная: открывается на `127.0.0.1` со случайным ключом, токены целиком не показывает и никуда не отправляет.
+The panel is local: it listens on `127.0.0.1` with a random key, never shows full tokens and never sends them anywhere. Pick **English** or **Русский** there.
 
-После установки начните новую сессию или выполните `/reload-plugins` в уже открытой.
+Start a new session afterwards, or run `/reload-plugins` in an open one.
 
 ### Discord
 
-1. Создайте приложение в [Discord Developer Portal](https://discord.com/developers/applications). На вкладке **Bot** включите **Message Content Intent** и нажмите **Save Changes**.
-2. Добавьте бота на свой сервер с правами **Manage Channels**, **View Channel**, **Send Messages**, **Read Message History**, **Add Reactions**. Чтобы бот сам поставил иконку серверу, дайте ещё **Manage Server**.
-3. В панели, раздел **Discord**: токен бота и свой ID пользователя (ПКМ по себе → Copy User ID, нужен режим разработчика). ID сервера - только если бот на нескольких серверах. Нажмите **Подключить Discord**.
-4. В **Уведомления → Куда отправлять** выберите **Discord** или **Telegram и Discord**, сохраните и нажмите **Тестовое сообщение**.
+1. Create an application in the [Discord Developer Portal](https://discord.com/developers/applications). On the **Bot** tab turn on **Message Content Intent** and press **Save Changes**.
+2. Invite the bot to your server with **Manage Channels**, **View Channel**, **Send Messages**, **Read Message History** and **Add Reactions**. Add **Manage Server** if you want the bot to set the server icon.
+3. In the panel, **Discord** section: the bot token and your user ID (right-click yourself → Copy User ID; needs Developer Mode). The server ID is only needed if the bot is on several servers. Press **Connect Discord**.
+4. In **Notifications → Where to send**, pick **Discord** or **Telegram and Discord**, save, and press **Test message**.
 
-Бот создаст категорию `AI Forge` и канал `🔥・general`, а каналы сессий будет создавать сам. Каналы видят только вы и бот (плюс владельцы сервера через права Discord). Команды и кнопки бот принимает только от вас.
+The bot creates an `AI Forge` category with a `🔥・general` channel and makes a channel for each session on its own. Only you and the bot see them (server owners keep access through Discord permissions). The bot takes commands and button presses from you only.
 
-Если у бота нет аватара, а у сервера иконки, бот поставит картинку наковальни. Свои картинки он не трогает. Уведомления сервера по умолчанию бот переключит на «Только @упоминания».
+If the bot has no avatar and the server has no icon, the bot sets the anvil picture. It never replaces pictures you chose. It also switches the server's default notifications to "Only @mentions".
 
 ### Telegram
 
-1. Создайте бота у [@BotFather](https://t.me/BotFather).
-2. Создайте группу, включите в ней **Темы**, добавьте бота и сделайте его администратором с правом «Управление темами».
-3. В панели введите токен и нажмите **Найти группы**, либо запустите мастер: `node <плагин>/configure.mjs`.
+1. Create a bot with [@BotFather](https://t.me/BotFather).
+2. Create a group, turn on **Topics**, add the bot and make it an admin with "Manage topics".
+3. Enter the token in the panel and press **Find groups**, or run the wizard: `node <plugin>/configure.mjs`.
 
-Можно и без группы, в личке с ботом: тогда в @BotFather включите боту Threaded Mode, чтобы у сессий были свои темы.
+A private chat with the bot works too: turn on Threaded Mode for the bot in @BotFather so sessions get their own topics.
 
-## Как пользоваться
+## How to use it
 
-**Ответить сессии.** Напишите в её канал. Бот поставит 👀, сессия проснётся и получит ваш текст. Реплай на конкретное сообщение тоже работает. Сессия ждёт ответа до 12 часов после последнего хода.
+**Reply to a session.** Write in its channel. The bot reacts with 👀, the session wakes up and gets your text. Replying to a specific message works too. A session listens for 12 hours after its last turn.
 
-**Разрешения.** Кнопки приходят на любой запрос разрешения. Диалог в приложении работает параллельно: кто ответил первым, тот и решил, второе сообщение помечается «Решено в приложении».
+**Permissions.** Every permission request comes with buttons. The prompt in the app works at the same time: whichever answers first wins, and the other message is marked "Decided in the app".
 
-**Авто-режим.** Если классификатор авто-режима заблокировал действие, в канал придёт, что именно заблокировано и почему. «✅ Разрешить один раз» разрешает ровно этот вызов в этой сессии на 30 минут, и сессия повторит его.
+**Auto mode.** When the auto-mode classifier blocks an action, the channel gets what was blocked and why. **Allow once** allows exactly that call in that session for 30 minutes, and the session retries it.
 
-**Босс.** Назовите любую сессию «Босс» - она займёт общий канал (`🔥・general` или General в Telegram). Пишете туда задачу, Босс раскладывает её по проектным сессиям и запускает фоновые (`claude -p`) по кнопке «▶️ Запустить». Если приложение закрыло Босса, сообщение в общий канал разбудит его в фоне.
+**The Boss.** Name any session "Boss" and it takes the main channel (`🔥・general`, or General in Telegram). Drop a task there; the Boss splits it across project sessions and starts background ones (`claude -p`) after you press **▶️ Start**. If the app closed the Boss, a message in the main channel wakes it up in the background.
 
-**Команды** (только от вас):
+**Commands** (yours only):
 
-| Команда | Что делает |
+| Command | What it does |
 |---|---|
-| `/status` | режим, присутствие и список сессий |
-| `/away` | присылать всё сразу, 12 часов или до `/here` |
-| `/here` | умный режим |
-| `/mute 30m`, `/mute 2h`, `/mute off` | пауза |
+| `/status` | mode, presence and the list of sessions |
+| `/away` | send everything right away for 12 hours, or until `/here` |
+| `/here` | smart mode |
+| `/mute 30m`, `/mute 2h`, `/mute off` | pause |
 
-### Когда приходит уведомление
+### When you get notified
 
-AI Forge по умолчанию молчит, пока вы за компьютером, и пингует, только когда нужны вы:
+By default AI Forge stays quiet while you're at your computer and pings you only when it needs you:
 
-| Событие | Вас нет | Вы за Mac |
+| Event | You're away | You're at your Mac |
 |---|---|---|
-| Запрос разрешения или вопрос | сразу, с пингом | через 90 с, если не ответили в приложении |
-| Нужно ваше действие | сразу, с пингом | через 180 с, если не ответили |
-| Обычный ход завершён | тихо, без звука | не отправляется |
+| Permission request or question | right away, with a ping | after 90 s, if you haven't answered in the app |
+| The agent needs you | right away, with a ping | after 180 s, if you haven't answered |
+| A turn finished | silently | not sent |
 
-В Discord все сообщения приходят без звука, а пингуют вас только те, где нужно действие. В тихие часы (`quietHours`) упоминание остаётся, но без звука.
+In Discord every message is silent, and only the ones that need you mention you. During quiet hours (`quietHours`) the mention stays but makes no sound.
 
-### Статус в Discord
+### Discord status
 
-Пока работает фоновая служба, у бота статус «Playing AI Forge · в работе: N», где N - сессии, писавшие за последние 30 минут. Если на этом Mac открыт Discord, тот же статус появляется в вашем профиле: сколько сессий в работе, сколько времени запущено, и кнопка на этот репозиторий для тех, кто смотрит ваш профиль. Для этого в Discord должно быть включено **Настройки → Конфиденциальность активности → Share my activity**.
+While the background service runs, the bot shows "Playing AI Forge · working: N", where N is the number of sessions that posted in the last 30 minutes. If Discord is open on the same Mac, your own profile shows it too: how many sessions are working, for how long, and a button to this repo for people who look at your profile (Discord hides your own buttons from you). This needs **Settings → Activity Privacy → Share my activity** in Discord.
 
-## Настройки
+## Settings
 
-Всё задаётся в панели или в `~/.codex/telegram-action-notifier/config.json`. Отсутствующий ключ - значение по умолчанию.
+Everything is in the panel or in `~/.codex/telegram-action-notifier/config.json`. A missing key means the default.
 
-| Ключ | По умолчанию | Что делает |
+| Key | Default | What it does |
 |---|---|---|
-| `notificationTarget` | `telegram` | `discord` или `both` |
-| `deliveryMode` | `smart` | `always` - всегда сразу, `never` - ничего |
-| `notify` | `all` | `action` - не присылать обычные ходы |
-| `approvalWaitSec` | `42900` (почти 12 ч) | сколько ждать кнопку; `0` - без кнопок |
-| `presenceIdleSec` / `approvalGraceSec` / `actionGraceSec` | `120` / `90` / `180` | пороги умной доставки |
-| `quietHours` | нет | `{"from":"23:00","to":"08:00"}` - без звука |
-| `chatReplies` | `true` | `false` - не принимать ответы |
-| `telegramDenials` | `true` | `false` - не присылать блокировки авто-режима |
-| `bossRevive` | `true` | `false` - не будить остановленного Босса |
-| `spawnConfirm` | `telegram` | `never` - запускать фоновые сессии без подтверждения |
-| `workerPermissions` | `telegram` | `auto` - фоновые сессии в режиме `auto` |
-| `workerDefaults` | Sonnet 5.5, medium, `acceptEdits` | модель, effort и режим фоновых сессий |
-| `discordActivity` | `AI Forge` | статус бота; `""` - без статуса |
-| `discordRichPresence` | `true` | `false` - не показывать статус в вашем профиле |
+| `language` | `en` | `ru` for the Russian interface |
+| `notificationTarget` | `telegram` | `discord` or `both` |
+| `deliveryMode` | `smart` | `always`: send right away; `never`: send nothing |
+| `notify` | `all` | `action`: skip ordinary turns |
+| `approvalWaitSec` | `42900` (almost 12 h) | how long buttons wait; `0`: no buttons |
+| `presenceIdleSec` / `approvalGraceSec` / `actionGraceSec` | `120` / `90` / `180` | smart delivery thresholds |
+| `quietHours` | none | `{"from":"23:00","to":"08:00"}`: no sound |
+| `chatReplies` | `true` | `false`: ignore replies |
+| `telegramDenials` | `true` | `false`: don't send auto-mode blocks |
+| `bossRevive` | `true` | `false`: don't wake a stopped Boss |
+| `spawnConfirm` | `telegram` | `never`: start background sessions without asking |
+| `workerPermissions` | `telegram` | `auto`: background sessions run in `auto` mode |
+| `workerDefaults` | Sonnet 5.5, medium, `acceptEdits` | model, effort and mode for background sessions |
+| `discordActivity` | `AI Forge` | the bot's status; `""` hides it |
+| `discordRichPresence` | `true` | `false`: no status on your profile |
 
-## Безопасность
+## Security
 
-- Токены и ID чатов хранятся только локально (`0600`), в репозиторий и логи не попадают, секреты в сообщениях вырезаются.
-- Бот слушается только владельца: чужие сообщения и нажатия молча игнорируются.
-- Фоновым сессиям запрещён `bypassPermissions`. Рискованные команды они спрашивают кнопками, если вы не выбрали `workerPermissions: "auto"`.
-- Статус в профиле идёт через локальный сокет Discord, без токенов.
+- Tokens and chat IDs are stored locally only (`0600`), never in the repo or logs; secrets are cut out of messages.
+- The bot listens to its owner only: other people's messages and presses are silently ignored.
+- Background sessions can't use `bypassPermissions`. They ask with buttons for risky commands unless you chose `workerPermissions: "auto"`.
+- The profile status goes through Discord's local socket, with no token.
 
 ## Codex
 
-В Codex AI Forge работает только на отправку: запросы разрешений и «нужно действие» приходят в Discord или Telegram, отвечать нужно в Codex.
+In Codex, AI Forge only sends: permission requests and "I need you" turns arrive in Discord or Telegram, and you answer in Codex.
 
 ```bash
 codex plugin marketplace add dzotyara/ai-forge --ref main
 codex plugin add ai-forge@ai-forge
 ```
 
-## Разработка
+## Development
 
 ```bash
 node --test plugins/ai-forge/tests/*.test.mjs
 ```
 
-Тесты не ходят в сеть: Telegram, Discord и сокет Discord подменяются. Версию поднимайте в обоих манифестах: `plugins/ai-forge/plugin.json` и `plugins/ai-forge/.claude-plugin/plugin.json`.
+Tests never touch the network: Telegram, Discord and Discord's socket are stubbed. The suite runs in Russian (`tests/lang-ru.mjs`); English checks import `tests/lang-en.mjs` first. Bump the version in both manifests: `plugins/ai-forge/plugin.json` and `plugins/ai-forge/.claude-plugin/plugin.json`.
 
 ---
 
 <p align="center">
-  Понравилось? <a href="https://github.com/dzotyara/ai-forge">⭐ Поставьте звезду</a> - это лучшая благодарность
+  Like it? <a href="https://github.com/dzotyara/ai-forge">⭐ Star the repo</a>. It's the best thank-you.
 </p>

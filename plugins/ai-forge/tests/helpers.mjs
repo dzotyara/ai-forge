@@ -1,3 +1,4 @@
+import "./lang-ru.mjs";
 // Test helpers: an isolated CODEX_HOME and a recording fetch mock (no network).
 import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import os from "node:os";

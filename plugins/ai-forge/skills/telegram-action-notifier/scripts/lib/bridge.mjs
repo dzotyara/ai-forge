@@ -23,6 +23,7 @@ import {
 import { botUser, connectDiscord, discordApi, slashCommands } from "./discord.mjs";
 import { connectRichPresence, richPresenceActivity } from "./rpc.mjs";
 import { escapeHtml, htmlToPlain, projectName, truncateText } from "./format.mjs";
+import { L } from "./i18n.mjs";
 import { detectPresence, effectiveMode, parseMuteDuration, pendingAction } from "./presence.mjs";
 import {
   QUESTION_CALLBACK,
@@ -42,7 +43,10 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const DAEMON_IDLE_MS = 2 * 60 * 60 * 1000;
 export const WAITER_MAX_MS = 43_000 * 1000; // just under the hook timeout (43200 s)
-export const REPLY_PREFIX = "Сообщение пользователя из Telegram:";
+// Both languages are recognised on input: the prefix may come from a daemon that ran in the other language.
+const REPLY_PREFIX_RU = "Сообщение пользователя из Telegram:";
+const REPLY_PREFIX_EN = "User message from Telegram:";
+export const REPLY_PREFIX = L(REPLY_PREFIX_RU, REPLY_PREFIX_EN);
 const KEEP_MESSAGE_IDS = 40;
 
 // ---------------------------------------------------------------- state files
@@ -216,7 +220,7 @@ function cleanTitle(value) {
  * `ai-title`, then the project name. Reads the tail first; full scan only if needed.
  */
 export async function readSessionTitle(transcriptPath, cwd, { tailBytes = 256 * 1024, fullScan = true } = {}) {
-  const fallback = projectName(cwd) || "Сессия";
+  const fallback = projectName(cwd) || L("Сессия", "Session");
   if (typeof transcriptPath !== "string" || !transcriptPath) return fallback;
   let handle;
   try {
@@ -251,9 +255,9 @@ export async function readSessionTitle(transcriptPath, cwd, { tailBytes = 256 * 
 
 /** Topic name: "<title> · <project>", or "<parent> › <title>" for a child session. */
 export function topicName(title, project, parent) {
-  if (parent) return truncateText(`${parent} › ${title || "Сессия"}`, 128);
+  if (parent) return truncateText(`${parent} › ${title || L("Сессия", "Session")}`, 128);
   const name = project && project !== title ? `${title} · ${project}` : title;
-  return truncateText(name || "Сессия", 128);
+  return truncateText(name || L("Сессия", "Session"), 128);
 }
 
 export async function sessionContext(event, host, { fullScan = true } = {}) {
@@ -272,8 +276,10 @@ export async function sessionContext(event, host, { fullScan = true } = {}) {
   };
 }
 
-export const BOSS_TITLE = "босс";
-export const isBossTitle = (title) => String(title ?? "").trim().toLowerCase() === BOSS_TITLE;
+export const BOSS_TITLE = L("босс", "boss");
+// A session titled "Босс" or "Boss" is the boss in either language.
+const BOSS_TITLES = new Set(["босс", "boss"]);
+export const isBossTitle = (title) => BOSS_TITLES.has(String(title ?? "").trim().toLowerCase());
 
 /**
  * The boss session (it owns the General topic): an explicit claim, else the
@@ -337,7 +343,7 @@ export function findSession(state, target) {
 export async function claimBoss(sessionId) {
   const sid = safeSessionId(sessionId);
   return updateState((state) => {
-    state.sessions[sid] ??= { createdAt: Date.now(), title: "Босс", host: "Claude Code", updatedAt: Date.now() };
+    state.sessions[sid] ??= { createdAt: Date.now(), title: L("Босс", "Boss"), host: "Claude Code", updatedAt: Date.now() };
     state.sessions[sid].ended = false;
     state.meta.bossSessionId = sid;
     state.meta.bossClaimed = true;
@@ -420,12 +426,24 @@ export async function topicsEnabled(settings) {
 }
 
 export const TOPIC_REASON_TEXT = {
-  ok: "включены: у каждой сессии своя тема",
-  "private-off": "выключены в личном чате с ботом: включите режим тем в @BotFather (Bot Settings → Threaded Mode)",
-  "not-forum": "в группе выключены темы: откройте настройки группы и включите «Темы» (Topics)",
-  "not-admin": "бот не администратор группы: сделайте его админом с правом «Управление темами»",
-  "no-rights": "у бота нет права «Управление темами»: включите его в правах администратора",
-  error: "не удалось проверить",
+  ok: L("включены: у каждой сессии своя тема", "on: each session has its own topic"),
+  "private-off": L(
+    "выключены в личном чате с ботом: включите режим тем в @BotFather (Bot Settings → Threaded Mode)",
+    "off in the private chat with the bot: turn on topics in @BotFather (Bot Settings → Threaded Mode)",
+  ),
+  "not-forum": L(
+    "в группе выключены темы: откройте настройки группы и включите «Темы» (Topics)",
+    "off in the group: open the group settings and turn on Topics",
+  ),
+  "not-admin": L(
+    "бот не администратор группы: сделайте его админом с правом «Управление темами»",
+    "the bot is not a group admin: make it an admin with the “Manage topics” right",
+  ),
+  "no-rights": L(
+    "у бота нет права «Управление темами»: включите его в правах администратора",
+    "the bot lacks the “Manage topics” right: turn it on in the admin rights",
+  ),
+  error: L("не удалось проверить", "could not check"),
 };
 
 function threadGone(error) {
@@ -471,7 +489,10 @@ async function ensureTopic(settings, ctx) {
         }
         return known.id;
       }
-      const description = `Сессия «${ctx.title ?? "без названия"}»${ctx.project ? ` · ${ctx.project}` : ""}. Ответ здесь уйдёт в эту сессию.`;
+      const description = L(
+        `Сессия «${ctx.title ?? "без названия"}»${ctx.project ? ` · ${ctx.project}` : ""}. Ответ здесь уйдёт в эту сессию.`,
+        `Session “${ctx.title ?? "untitled"}”${ctx.project ? ` · ${ctx.project}` : ""}. Replies here go to this session.`,
+      );
       const topic = await telegram(settings.token, "createForumTopic", { name, description });
       session.discordTopic = { channel, id: topic.message_thread_id, name };
       return topic.message_thread_id;
@@ -909,14 +930,19 @@ export async function takeInbox(sessionId) {
 export function formatReplies(entries) {
   return entries
     .map((entry) => {
-      if (entry.kind === "notify") return `Сессия «${entry.from}» сообщает: ${entry.text}`;
+      if (entry.kind === "notify") return L(`Сессия «${entry.from}» сообщает: ${entry.text}`, `Session “${entry.from}” says: ${entry.text}`);
       if (entry.kind === "button" && isTurnAnswerData(entry.data) && entry.buttonText) {
         return `${REPLY_PREFIX} ${entry.buttonText}`;
       }
       if (entry.kind === "button") {
-        return `Telegram: кнопка «${entry.buttonText || entry.data}» data=${entry.data} на сообщении ${entry.messageId}`;
+        return L(
+          `Telegram: кнопка «${entry.buttonText || entry.data}» data=${entry.data} на сообщении ${entry.messageId}`,
+          `Telegram: button “${entry.buttonText || entry.data}” data=${entry.data} on message ${entry.messageId}`,
+        );
       }
-      if (entry.replyTo) return `Telegram: ответ на сообщение ${entry.replyTo}: ${entry.text}`;
+      if (entry.replyTo) {
+        return L(`Telegram: ответ на сообщение ${entry.replyTo}: ${entry.text}`, `Telegram: reply to message ${entry.replyTo}: ${entry.text}`);
+      }
       return `${REPLY_PREFIX} ${entry.text}`;
     })
     .join("\n\n");
@@ -924,7 +950,8 @@ export function formatReplies(entries) {
 
 /** True for a prompt that came from the Telegram waiter rather than the keyboard. */
 export const isTelegramPrompt = (prompt) =>
-  typeof prompt === "string" && (prompt.includes(REPLY_PREFIX) || /(^|\n)Telegram: /.test(prompt));
+  typeof prompt === "string" &&
+  (prompt.includes(REPLY_PREFIX_RU) || prompt.includes(REPLY_PREFIX_EN) || /(^|\n)Telegram: /.test(prompt));
 
 /**
  * Wait for the user's next Telegram message for this session.
@@ -1017,19 +1044,21 @@ async function topicDeleted(settings, session) {
 export function approvalKeyboard(requestId) {
   return {
     inline_keyboard: [[
-      { text: "✅ Разрешить", callback_data: `p:${requestId}:allow`, style: "success" },
-      { text: "❌ Отклонить", callback_data: `p:${requestId}:deny`, style: "danger" },
+      { text: L("✅ Разрешить", "✅ Allow"), callback_data: `p:${requestId}:allow`, style: "success" },
+      { text: L("❌ Отклонить", "❌ Deny"), callback_data: `p:${requestId}:deny`, style: "danger" },
     ]],
   };
 }
 
 export const OUTCOME_TEXT = {
-  allow: "✅ <b>Разрешено в Telegram</b>",
-  deny: "❌ <b>Отклонено в Telegram</b>",
-  timeout: "⏱ <i>Ответа нет — решите в приложении</i>",
-  "timeout-denied": "⏱ <i>Ответа нет — запрос отклонён</i>",
-  cancelled: "↩️ <i>Запрос закрыт в приложении</i>",
-  app: "✓ <i>Решено в приложении</i>",
+  allow: L("✅ <b>Разрешено в Telegram</b>", "✅ <b>Allowed in Telegram</b>"),
+  deny: L("❌ <b>Отклонено в Telegram</b>", "❌ <b>Denied in Telegram</b>"),
+  "allow-discord": L("✅ <b>Разрешено в Discord</b>", "✅ <b>Allowed in Discord</b>"),
+  "deny-discord": L("❌ <b>Отклонено в Discord</b>", "❌ <b>Denied in Discord</b>"),
+  timeout: L("⏱ <i>Ответа нет — решите в приложении</i>", "⏱ <i>No answer — decide in the app</i>"),
+  "timeout-denied": L("⏱ <i>Ответа нет — запрос отклонён</i>", "⏱ <i>No answer — request denied</i>"),
+  cancelled: L("↩️ <i>Запрос закрыт в приложении</i>", "↩️ <i>Request closed in the app</i>"),
+  app: L("✓ <i>Решено в приложении</i>", "✓ <i>Decided in the app</i>"),
 };
 
 async function readOutcome(requestId) {
@@ -1136,7 +1165,7 @@ export function permissionDecision(behavior) {
       decision:
         behavior === "allow"
           ? { behavior: "allow" }
-          : { behavior: "deny", message: "Отклонено пользователем в Telegram" },
+          : { behavior: "deny", message: L("Отклонено пользователем кнопкой в Telegram или Discord", "Denied by the user with a button in Telegram or Discord") },
     },
   };
 }
@@ -1487,10 +1516,12 @@ async function handleQuestionPress(settings, route) {
   const toast = (text) =>
     telegram(settings.token, "answerCallbackQuery", { callback_query_id: route.callbackId, text }).catch(() => {});
   const request = await liveQuestion(route.requestId);
-  if (!request) return toast("Вопрос уже закрыт");
+  if (!request) return toast(L("Вопрос уже закрыт", "Question already closed"));
   const selections = applyPress(request.questions, await readJson(files.approval(route.requestId, "sel"), {}), route.qi, route.choice);
   const result = await saveSelections(settings, route.requestId, request, selections, route.messageId);
-  return toast(result === "answered" ? "Ответ передан" : result === "late" ? "Уже отвечено" : "Отмечено");
+  return toast(
+    result === "answered" ? L("Ответ передан", "Answer sent") : result === "late" ? L("Уже отвечено", "Already answered") : L("Отмечено", "Selected"),
+  );
 }
 
 /** Free text in the session's topic, or a reply to a question, answers the open question. */
@@ -1526,15 +1557,16 @@ async function handleCallback(settings, route) {
     telegram(settings.token, "answerCallbackQuery", { callback_query_id: route.callbackId, text })
       .catch(() => {});
   const request = await readJson(files.approval(route.requestId, "req"), null);
-  if (!request || !pidAlive(request.pid)) return answer("Запрос уже закрыт");
+  if (!request || !pidAlive(request.pid)) return answer(L("Запрос уже закрыт", "Request already closed"));
   if (!(await createExclusive(files.approval(route.requestId, "res"), { behavior: route.behavior, at: Date.now() }))) {
-    return answer("Уже решено");
+    return answer(L("Уже решено", "Already decided"));
   }
-  await answer(route.behavior === "allow" ? "Разрешено" : "Отклонено");
+  await answer(route.behavior === "allow" ? L("Разрешено", "Allowed") : L("Отклонено", "Denied"));
   await editNotification(settings, "editMessageText", {
     chat_id: route.chatId,
     message_id: route.messageId,
-    text: `${request.html}\n\n${OUTCOME_TEXT[route.behavior]}`,
+    // Say where the owner pressed: a Discord token is an object with a channel.
+    text: `${request.html}\n\n${OUTCOME_TEXT[settings.token?.channel ? `${route.behavior}-discord` : route.behavior]}`,
     parse_mode: "HTML",
     link_preview_options: { is_disabled: true },
   }).catch((error) => logLine(`edit after button: ${error.message}`));
@@ -1542,46 +1574,67 @@ async function handleCallback(settings, route) {
 
 const clock = (ms) => new Date(ms).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" });
 
-const MODE_LABEL = { smart: "умный", always: "всегда", never: "никогда" };
+const MODE_LABEL = { smart: L("умный", "smart"), always: L("всегда", "always"), never: L("никогда", "never") };
 const STATUS_LABEL = {
-  waiting: "ждёт ответа",
-  active: "активна",
-  ended: "завершена",
-  "notify-only": "только уведомления (Codex)",
+  waiting: L("ждёт ответа", "waiting for a reply"),
+  active: L("активна", "active"),
+  ended: L("завершена", "ended"),
+  "notify-only": L("только уведомления (Codex)", "notifications only (Codex)"),
 };
 
 export function describePresence(presence) {
-  if (presence.reason === "locked") return "экран заблокирован";
-  if (presence.idleSec == null) return "не определено — считаю, что вас нет";
-  const idle = presence.idleSec < 90 ? `${Math.round(presence.idleSec)} с` : `${Math.round(presence.idleSec / 60)} мин`;
-  return presence.present ? `за компьютером (без действий ${idle})` : `отошли (без действий ${idle})`;
+  if (presence.reason === "locked") return L("экран заблокирован", "screen locked");
+  if (presence.idleSec == null) return L("не определено — считаю, что вас нет", "unknown — assuming you are away");
+  const idle = presence.idleSec < 90
+    ? L(`${Math.round(presence.idleSec)} с`, `${Math.round(presence.idleSec)} s`)
+    : L(`${Math.round(presence.idleSec / 60)} мин`, `${Math.round(presence.idleSec / 60)} min`);
+  return presence.present
+    ? L(`за компьютером (без действий ${idle})`, `at the computer (idle ${idle})`)
+    : L(`отошли (без действий ${idle})`, `away (idle ${idle})`);
 }
 
 export function statusText(settings, state, presence, now = Date.now()) {
   const mode = effectiveMode(settings, state.meta, now);
-  const lines = ["<b>Статус</b>"];
+  const lines = [L("<b>Статус</b>", "<b>Status</b>")];
   lines.push(
-    `Режим: ${MODE_LABEL[mode.mode] ?? mode.mode}${mode.overridden ? ` (до ${clock(mode.overrideUntil)})` : " (из настроек)"}`,
+    L(
+      `Режим: ${MODE_LABEL[mode.mode] ?? mode.mode}${mode.overridden ? ` (до ${clock(mode.overrideUntil)})` : " (из настроек)"}`,
+      `Mode: ${MODE_LABEL[mode.mode] ?? mode.mode}${mode.overridden ? ` (until ${clock(mode.overrideUntil)})` : " (from settings)"}`,
+    ),
   );
-  lines.push(`Пауза: ${mode.muteUntil ? `до ${clock(mode.muteUntil)}` : "нет"}`);
-  lines.push(`Вы: ${describePresence(presence)}`);
+  lines.push(L(`Пауза: ${mode.muteUntil ? `до ${clock(mode.muteUntil)}` : "нет"}`, `Paused: ${mode.muteUntil ? `until ${clock(mode.muteUntil)}` : "no"}`));
+  lines.push(L(`Вы: ${describePresence(presence)}`, `You: ${describePresence(presence)}`));
   const topics = state.meta.topics?.chatId === settings.chatId ? state.meta.topics : null;
-  lines.push(`Чат: ${isPrivateChatId(settings.chatId) ? "личный" : "группа"}, темы ${topics ? TOPIC_REASON_TEXT[topics.reason] ?? topics.reason : "ещё не проверялись"}`);
+  const topicsText = topics ? TOPIC_REASON_TEXT[topics.reason] ?? topics.reason : L("ещё не проверялись", "not checked yet");
+  lines.push(L(
+    `Чат: ${isPrivateChatId(settings.chatId) ? "личный" : "группа"}, темы ${topicsText}`,
+    `Chat: ${isPrivateChatId(settings.chatId) ? "private" : "group"}, topics ${topicsText}`,
+  ));
   const bossId = resolveBossId(state);
   const dormant = bossId ? null : dormantBossId(state);
-  lines.push(`Босс: ${bossId ? `${escapeHtml(state.sessions[bossId].title ?? "Босс")}${hasLiveWaiter(state.sessions[bossId]) ? " — ждёт сообщений в General" : " — занят или не слушает"}` : dormant && settings.bossRevive ? "приложение его не держит — разбужу по сообщению в General" : "не запущен"}`);
+  const bossText = bossId
+    ? `${escapeHtml(state.sessions[bossId].title ?? L("Босс", "Boss"))}${hasLiveWaiter(state.sessions[bossId])
+      ? L(" — ждёт сообщений в General", " — waiting for messages in General")
+      : L(" — занят или не слушает", " — busy or not listening")}`
+    : dormant && settings.bossRevive
+      ? L("приложение его не держит — разбужу по сообщению в General", "not running in the app — a message in General will wake it")
+      : L("не запущен", "not running");
+  lines.push(L(`Босс: ${bossText}`, `Boss: ${bossText}`));
   const sessions = Object.entries(state.sessions)
     .map(([id, session]) => describeSession(id, session, pidAlive, resolveBossId(state)))
     .filter((session) => session.status !== "ended")
     .sort((a, b) => (b.lastPostAt ?? 0) - (a.lastPostAt ?? 0))
     .slice(0, 15);
-  lines.push("", sessions.length ? "<b>Сессии</b>" : "Активных сессий нет.");
+  lines.push("", sessions.length ? L("<b>Сессии</b>", "<b>Sessions</b>") : L("Активных сессий нет.", "No active sessions."));
   for (const session of sessions) {
     const project = session.project && session.project !== session.title ? ` · ${escapeHtml(session.project)}` : "";
-    const muted = `${session.headless ? ", без окна" : ""}${session.muted ? ", заглушена" : ""}`;
+    const muted = `${session.headless ? L(", без окна", ", headless") : ""}${session.muted ? L(", заглушена", ", muted") : ""}`;
     lines.push(`• ${escapeHtml(session.title)}${project} — ${STATUS_LABEL[session.status] ?? session.status}${muted}`);
   }
-  lines.push("", "<i>/away — присылать всё сразу, /here — умный режим, /mute 30m — пауза</i>");
+  lines.push("", L(
+    "<i>/away — присылать всё сразу, /here — умный режим, /mute 30m — пауза</i>",
+    "<i>/away — send everything now, /here — smart mode, /mute 30m — pause</i>",
+  ));
   return lines.join("\n");
 }
 
@@ -1597,23 +1650,31 @@ async function handleCommand(settings, route, presenceNow) {
     await updateState((state) => {
       state.meta.override = { mode: "always", until: now + halfDay };
     });
-    return reply(`Понял, вы не у компьютера. Присылаю всё сразу до ${clock(now + halfDay)} или до команды /here.`);
+    return reply(L(
+      `Понял, вы не у компьютера. Присылаю всё сразу до ${clock(now + halfDay)} или до команды /here.`,
+      `Got it, you are away. Sending everything until ${clock(now + halfDay)} or until /here.`,
+    ));
   }
   if (route.name === "here") {
     await updateState((state) => {
       state.meta.override = { mode: "smart", until: now + halfDay };
       delete state.meta.muteUntil;
     });
-    return reply("Умный режим: пока вы за компьютером, пишу сюда, только если вы не ответили в приложении.");
+    return reply(L(
+      "Умный режим: пока вы за компьютером, пишу сюда, только если вы не ответили в приложении.",
+      "Smart mode: while you are at the computer, I post here only if you did not answer in the app.",
+    ));
   }
   if (route.name === "mute") {
     const ms = parseMuteDuration(route.arg);
-    if (ms == null) return reply("Не понял срок. Примеры: /mute 30m, /mute 2h, /mute off");
+    if (ms == null) return reply(L("Не понял срок. Примеры: /mute 30m, /mute 2h, /mute off", "Unknown duration. Examples: /mute 30m, /mute 2h, /mute off"));
     await updateState((state) => {
       if (ms === 0) delete state.meta.muteUntil;
       else state.meta.muteUntil = now + ms;
     });
-    return reply(ms === 0 ? "Пауза снята." : `Пауза до ${clock(now + ms)}. Снять раньше: /mute off`);
+    return reply(ms === 0
+      ? L("Пауза снята.", "Pause off.")
+      : L(`Пауза до ${clock(now + ms)}. Снять раньше: /mute off`, `Paused until ${clock(now + ms)}. To end it early: /mute off`));
   }
   const presence = await presenceNow();
   return reply(statusText(settings, await readState(), presence, now));
@@ -1634,7 +1695,7 @@ export async function handleUpdate(settings, update, { presenceNow = async () =>
   if (route.type === "no-boss") {
     return telegram(settings.token, "sendMessage", {
       chat_id: settings.chatId,
-      text: "Босс сейчас не запущен — откройте сессию «Босс» в приложении.",
+      text: L("Босс сейчас не запущен — откройте сессию «Босс» в приложении.", "The boss is not running — open the “Boss” session in the app."),
       reply_parameters: { message_id: route.messageId },
       disable_notification: true,
     }).catch(() => {});
@@ -1646,7 +1707,7 @@ export async function handleUpdate(settings, update, { presenceNow = async () =>
     const session = route.sessionId ? state.sessions[route.sessionId] : null;
     const toast = (text) =>
       telegram(settings.token, "answerCallbackQuery", { callback_query_id: route.callbackId, text }).catch(() => {});
-    if (!session || session.ended) return toast("Сессия уже завершена");
+    if (!session || session.ended) return toast(L("Сессия уже завершена", "Session already ended"));
     await appendInbox(route.sessionId, {
       kind: "button",
       data: route.data,
@@ -1664,9 +1725,11 @@ export async function handleUpdate(settings, update, { presenceNow = async () =>
     }
     if (session.headless) {
       await (await import("./workers.mjs")).kickWorker(route.sessionId);
-      return toast("Передано в сессию");
+      return toast(L("Передано в сессию", "Sent to the session"));
     }
-    return toast(hasLiveWaiter(session) ? "Передано в сессию" : "Сессия занята — передам, когда освободится");
+    return toast(hasLiveWaiter(session)
+      ? L("Передано в сессию", "Sent to the session")
+      : L("Сессия занята — передам, когда освободится", "Session busy — will deliver when it is free"));
   }
   if (route.type === "callback-unknown") {
     return telegram(settings.token, "answerCallbackQuery", { callback_query_id: route.callbackId }).catch(() => {});
@@ -1688,10 +1751,10 @@ export async function handleUpdate(settings, update, { presenceNow = async () =>
     return telegram(settings.token, "sendMessage", params).catch(() => {});
   };
   const reviveBoss = Boolean(settings.bossRevive && session?.ended && route.sessionId === dormantBossId(state));
-  if (session?.ended && !reviveBoss) return notice("Эта сессия уже завершена, сообщение не доставлено.");
-  if (session?.host === "Codex") return notice("Из Telegram можно отвечать только сессиям Claude Code.");
-  if (session?.muted) return notice("Сессия заглушена в панели настроек, сообщение не доставлено.");
-  if (!settings.chatReplies) return notice("Ответы из Telegram выключены в настройках.");
+  if (session?.ended && !reviveBoss) return notice(L("Эта сессия уже завершена, сообщение не доставлено.", "This session has ended. Message not delivered."));
+  if (session?.host === "Codex") return notice(L("Из Telegram можно отвечать только сессиям Claude Code.", "You can reply from Telegram only to Claude Code sessions."));
+  if (session?.muted) return notice(L("Сессия заглушена в панели настроек, сообщение не доставлено.", "Session muted in the settings panel. Message not delivered."));
+  if (!settings.chatReplies) return notice(L("Ответы из Telegram выключены в настройках.", "Replies from Telegram are off in settings."));
   if (await answerQuestionWithText(settings, route)) return undefined;
   await appendInbox(route.sessionId, {
     text: route.text,
@@ -1714,16 +1777,19 @@ export async function handleUpdate(settings, update, { presenceNow = async () =>
     return undefined;
   }
   if (!hasLiveWaiter(session)) {
-    return notice("⏳ Сессия сейчас занята. Передам сообщение, как только она закончит текущий ответ.");
+    return notice(L(
+      "⏳ Сессия сейчас занята. Передам сообщение, как только она закончит текущий ответ.",
+      "⏳ Session busy. The message will be delivered when it finishes the current reply.",
+    ));
   }
   return undefined;
 }
 
 const BOT_COMMANDS = [
-  { command: "status", description: "Режим, присутствие и сессии" },
-  { command: "away", description: "Я не у компьютера: присылать всё сразу" },
-  { command: "here", description: "Умный режим: писать, только если не отвечаю" },
-  { command: "mute", description: "Пауза: /mute 30m, /mute 2h, /mute off" },
+  { command: "status", description: L("Режим, присутствие и сессии", "Mode, presence and sessions") },
+  { command: "away", description: L("Я не у компьютера: присылать всё сразу", "I am away: send everything now") },
+  { command: "here", description: L("Умный режим: писать, только если не отвечаю", "Smart mode: post only if I do not answer") },
+  { command: "mute", description: L("Пауза: /mute 30m, /mute 2h, /mute off", "Pause: /mute 30m, /mute 2h, /mute off") },
 ];
 
 /**
@@ -1747,7 +1813,7 @@ export function discordInbound(settings, discord, presenceNow, report) {
         // Slash commands show up in every channel of the server: say where they work.
         if (update.slashCommand) {
           await discordApi(discord.token, "POST", callback, { type: 4, data: { flags: 64,
-            content: `Команды работают в <#${discord.chatId}> и в каналах сессий.` } });
+            content: L(`Команды работают в <#${discord.chatId}> и в каналах сессий.`, `Commands work in <#${discord.chatId}> and in session channels.`) } });
         }
         return;
       }
@@ -1768,7 +1834,7 @@ export function discordActivity(settings, state, now = Date.now()) {
   const base = settings.discordActivity;
   if (!base) return "";
   const working = workingSessions(state, now);
-  return working ? `${base} · в работе: ${working}` : base;
+  return working ? L(`${base} · в работе: ${working}`, `${base} · working: ${working}`) : base;
 }
 
 /** Claude Code sessions that posted in the last 30 minutes. */
@@ -2010,7 +2076,10 @@ export async function findChats(token, { waitSec = 0 } = {}) {
 }
 
 export const TOPICS_HINT =
-  "Темы выключены. Включите их в @BotFather: откройте настройки бота (Bot Settings) и включите режим тем — Threaded Mode. После этого новые сессии получат отдельные темы.";
+  L(
+    "Темы выключены. Включите их в @BotFather: откройте настройки бота (Bot Settings) и включите режим тем — Threaded Mode. После этого новые сессии получат отдельные темы.",
+    "Topics are off. Turn them on in @BotFather: open the bot settings (Bot Settings) and turn on Threaded Mode. New sessions then get their own topics.",
+  );
 
 /** Groups the bot is in, from recent updates (message, my_chat_member). Stops the daemon first. */
 export async function findGroups(token) {

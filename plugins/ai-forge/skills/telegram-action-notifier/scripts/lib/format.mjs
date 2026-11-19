@@ -3,10 +3,11 @@ import os from "node:os";
 import path from "node:path";
 
 import { redactSecrets } from "./common.mjs";
+import { L } from "./i18n.mjs";
 
 export const MESSAGE_LIMIT = 4000; // Telegram allows 4096 chars after entities; keep a margin.
 export const MAX_PARTS = 4;
-export const TRUNCATED_NOTICE = "… (обрезано, полный ответ в приложении)";
+export const TRUNCATED_NOTICE = L("… (обрезано, полный ответ в приложении)", "… (truncated, full reply in the app)");
 
 export function escapeHtml(value) {
   return String(value)
@@ -326,7 +327,7 @@ export function renderMessages({
 const KIND_EMOJI = { approval: "🔐", action: "🔔", turn: "💬", question: "❓" };
 
 export function buildHeader({ kind, title, project, host }) {
-  const pieces = [`<b>${escapeHtml(title || project || "Сессия")}</b>`];
+  const pieces = [`<b>${escapeHtml(title || project || L("Сессия", "Session"))}</b>`];
   if (project && project !== title) pieces.push(escapeHtml(project));
   if (host) pieces.push(escapeHtml(host));
   return `${KIND_EMOJI[kind] ?? "🔔"} ${pieces.join(" · ")}`;

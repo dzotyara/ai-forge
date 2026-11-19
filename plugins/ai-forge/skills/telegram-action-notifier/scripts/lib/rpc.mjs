@@ -10,6 +10,8 @@ import path from "node:path";
 import process from "node:process";
 import { randomUUID } from "node:crypto";
 
+import { L } from "./i18n.mjs";
+
 const OP = { handshake: 0, frame: 1, close: 2, ping: 3, pong: 4 };
 
 /** Socket paths Discord may use, most likely first. */
@@ -134,10 +136,10 @@ export const REPO_URL = "https://github.com/dzotyara/ai-forge";
  */
 export function richPresenceActivity({ working, startedAt, imageUrl }) {
   return {
-    details: working ? `Сессий в работе: ${working}` : "Ждёт задач",
+    details: working ? L(`Сессий в работе: ${working}`, `Sessions working: ${working}`) : L("Ждёт задач", "Waiting for tasks"),
     state: "Claude Code",
     timestamps: { start: Math.floor(startedAt / 1000) },
-    ...(imageUrl ? { assets: { large_image: imageUrl, large_text: "AI Forge" } } : {}),
-    buttons: [{ label: "⭐ AI Forge на GitHub", url: REPO_URL }],
+    ...(imageUrl ? { assets: { large_image: imageUrl, large_text: "AI Forge · github.com/dzotyara/ai-forge" } } : {}),
+    buttons: [{ label: L("⭐ AI Forge на GitHub", "⭐ AI Forge on GitHub"), url: REPO_URL }],
   };
 }
