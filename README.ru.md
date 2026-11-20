@@ -13,6 +13,7 @@
   <a href="#install-30"><img src="https://img.shields.io/badge/%D0%A3%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%BA%D0%B0-30%20%D1%81%D0%B5%D0%BA%D1%83%D0%BD%D0%B4-f97316?style=for-the-badge" alt="Установка за 30 секунд"></a>
   <a href="#demo"><img src="https://img.shields.io/badge/%D0%9F%D0%BE%D1%81%D0%BC%D0%BE%D1%82%D1%80%D0%B5%D1%82%D1%8C-%D0%B2%20%D0%B4%D0%B5%D0%BB%D0%B5-5865F2?style=for-the-badge" alt="Посмотреть в деле"></a>
   <a href="https://github.com/dzotyara/ai-forge/stargazers"><img src="https://img.shields.io/github/stars/dzotyara/ai-forge?style=for-the-badge&color=fbbf24&label=%E2%AD%90%20Stars" alt="Stars"></a>
+  <a href="https://boosty.to/dzotyara"><img src="https://img.shields.io/badge/Boosty-support-f15f2c?style=for-the-badge&logo=boosty&logoColor=white" alt="Поддержать на Boosty"></a>
 </p>
 
 <p align="center">
@@ -21,6 +22,10 @@
   <img src="https://img.shields.io/badge/Codex-supported-10a37f" alt="Codex supported">
   <img src="https://img.shields.io/badge/node-%E2%89%A522-3c873a" alt="Node 22+">
   <img src="https://img.shields.io/badge/server-none%20needed-64748b" alt="No server needed">
+</p>
+
+<p align="center">
+  ⭐ <b>Если AI Forge экономит вам время, <a href="https://github.com/dzotyara/ai-forge/stargazers">поставьте звезду</a>.</b> Так проект проще найти другим.
 </p>
 
 <p align="center">
@@ -268,11 +273,12 @@ node --test plugins/ai-forge/tests/*.test.mjs
 ## Поддержать AI Forge
 
 - ⭐ **Поставьте звезду.** Это самый быстрый способ помочь другим найти проект.
+- ☕ **[Поддержите на Boosty](https://boosty.to/dzotyara).** Разовый донат или подписка дают мне больше времени на AI Forge и новые инструменты.
 - 📣 **Расскажите** другу, который весь день сидит в Claude Code.
 - 🐞 **Откройте issue** с багом или идеей: от реального использования зависит, что будет дальше.
 
 ---
 
 <p align="center">
-  Понравилось? <a href="https://github.com/dzotyara/ai-forge">⭐ Поставьте звезду</a> - это лучшая благодарность
+  Понравилось? <a href="https://github.com/dzotyara/ai-forge">⭐ Поставьте звезду</a> или <a href="https://boosty.to/dzotyara">☕ поддержите на Boosty</a>
 </p>

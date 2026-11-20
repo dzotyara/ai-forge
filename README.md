@@ -13,6 +13,7 @@
   <a href="#install-in-30-seconds"><img src="https://img.shields.io/badge/Install-30%20seconds-f97316?style=for-the-badge" alt="Install in 30 seconds"></a>
   <a href="#see-it-in-action"><img src="https://img.shields.io/badge/See%20it-in%20action-5865F2?style=for-the-badge" alt="See it in action"></a>
   <a href="https://github.com/dzotyara/ai-forge/stargazers"><img src="https://img.shields.io/github/stars/dzotyara/ai-forge?style=for-the-badge&color=fbbf24&label=%E2%AD%90%20Stars" alt="Stars"></a>
+  <a href="https://boosty.to/dzotyara"><img src="https://img.shields.io/badge/Boosty-support-f15f2c?style=for-the-badge&logo=boosty&logoColor=white" alt="Support on Boosty"></a>
 </p>
 
 <p align="center">
@@ -21,6 +22,10 @@
   <img src="https://img.shields.io/badge/Codex-supported-10a37f" alt="Codex supported">
   <img src="https://img.shields.io/badge/node-%E2%89%A522-3c873a" alt="Node 22+">
   <img src="https://img.shields.io/badge/server-none%20needed-64748b" alt="No server needed">
+</p>
+
+<p align="center">
+  ⭐ <b>If AI Forge saves you time, <a href="https://github.com/dzotyara/ai-forge/stargazers">star the repo</a>.</b> It helps other people find it.
 </p>
 
 <p align="center">
@@ -264,11 +269,12 @@ Nothing. AI Forge is free and open source.
 ## Support AI Forge
 
 - ⭐ **Star the repo.** It's the fastest way to help other people find it.
+- ☕ **[Support me on Boosty](https://boosty.to/dzotyara).** A one-time tip or a monthly subscription gives me more time to build AI Forge and new tools.
 - 📣 **Share it** with a friend who runs Claude Code all day.
 - 🐞 **Open an issue** with a bug or an idea: real use drives what comes next.
 
 ---
 
 <p align="center">
-  Like it? <a href="https://github.com/dzotyara/ai-forge">⭐ Star the repo</a>. It's the best thank-you.
+  Like it? <a href="https://github.com/dzotyara/ai-forge">⭐ Star the repo</a> or <a href="https://boosty.to/dzotyara">☕ support me on Boosty</a>.
 </p>
