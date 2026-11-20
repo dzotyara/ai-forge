@@ -133,3 +133,14 @@ test("a session listens to the chat from its start, not only after its first tur
     assert.match(waiter(event).command, /wait-reply/);
   }
 });
+
+test("a waiter started right after an app restart clears the ended flag and delivers", async () => {
+  const bridgeMod = await import("../skills/telegram-action-notifier/scripts/lib/bridge.mjs");
+  const state = { sessions: { s: { ended: true, endedAt: 1 } } };
+  bridgeMod.claimWaiter(state, "s", process.pid);
+  assert.equal(state.sessions.s.ended, false);
+  assert.equal(state.sessions.s.endedAt, undefined);
+  const headless = { sessions: { h: { ended: true, headless: true } } };
+  bridgeMod.claimWaiter(headless, "h", process.pid);
+  assert.equal(headless.sessions.h.ended, true, "headless workers keep their flag");
+});
