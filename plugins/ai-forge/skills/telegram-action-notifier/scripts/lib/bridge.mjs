@@ -865,7 +865,7 @@ export function routeUpdate(update, { chatId, ownerUserId = "", sessions = {}, b
   if (!sessionId) {
     if (inTopic) return { type: "ignore" }; // a topic of a forgotten session
     // General (or the plain chat): the boss session.
-    if (!bossId) return { type: "no-boss", messageId: message.message_id, threadId: null };
+    if (!bossId) return { type: "no-boss", messageId: message.message_id, threadId: null, text: message.text ?? "" };
     sessionId = bossId;
   }
   // In a forum topic every message "replies" to the topic root; only real replies count.
@@ -1751,6 +1751,17 @@ export async function handleUpdate(settings, update, { presenceNow = async () =>
     // A stopped boss still owns General: its messages resume it headless.
     bossId: resolveBossId(state) ?? (settings.bossRevive ? dormantBossId(state) : null),
   });
+  if (route.type === "no-boss" && settings.bossRevive && route.text) {
+    // There is always a Boss: none to resume, so start a new one with this message.
+    const prompt = formatReplies([{ text: route.text, messageId: route.messageId, at: Date.now() }]);
+    await (await import("./workers.mjs")).createBoss(settings, { prompt });
+    await telegram(settings.token, "setMessageReaction", {
+      chat_id: settings.chatId,
+      message_id: route.messageId,
+      reaction: [{ type: "emoji", emoji: "👀" }],
+    }, { timeoutMs: 5000 }).catch(() => {});
+    return undefined;
+  }
   if (route.type === "no-boss") {
     return telegram(settings.token, "sendMessage", {
       chat_id: settings.chatId,

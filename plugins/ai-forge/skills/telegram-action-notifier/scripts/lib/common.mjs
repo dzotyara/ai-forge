@@ -140,6 +140,8 @@ export function resolveSettings(raw = {}, env = process.env) {
     claudePath: text(raw.claudePath),
     // A General message for a stopped "Босс" resumes it headless (claude -p --resume).
     bossRevive: raw.bossRevive !== false,
+    // Folder for a Boss the bridge has to create from scratch (default: home).
+    bossCwd: text(raw.bossCwd),
     // Auto-mode denials go to Telegram with «Разрешить один раз» (Claude Code).
     telegramDenials: raw.telegramDenials !== false,
   };

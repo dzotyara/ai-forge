@@ -77,7 +77,7 @@ test("routing: foreign chats, foreign senders, bots and unknown threads are igno
 
 test("routing: plain/General messages go to the boss, or get a 'no boss' reply", () => {
   assert.equal(bridge.routeUpdate(msg({}), { chatId: "4242", sessions, bossId: "s2" }).sessionId, "s2");
-  assert.deepEqual(bridge.routeUpdate(msg({}), { chatId: "4242", sessions }), { type: "no-boss", messageId: 500, threadId: null });
+  assert.deepEqual(bridge.routeUpdate(msg({}), { chatId: "4242", sessions }), { type: "no-boss", messageId: 500, threadId: null, text: "привет" });
 });
 
 const GROUP = -1001234567890;

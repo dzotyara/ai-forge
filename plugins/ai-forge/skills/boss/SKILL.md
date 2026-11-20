@@ -67,7 +67,7 @@ You are the Boss. Load the /ai-forge:boss skill and follow it strictly: the owne
 
 After that, messages from General wake this session. The bridge recognizes the Boss by the title "Boss" or "Босс" (case-insensitive). A session with any other title becomes the Boss only through `claim-boss`. If the session is restarted with the same title, it becomes the Boss again on its next turn.
 
-If the app stops this session's process, the service resumes it in the background (`claude -p --resume`) on the next message from General. On such a turn the app's session tools are not available: start child sessions with `spawn`.
+If the app stops this session's process, the service resumes it in the background (`claude -p --resume`) on the next message from General. If there is no Boss to resume, the service creates a new headless Boss with the start prompt above and the owner's message. On such turns the app's session tools are not available: start child sessions with `spawn`.
 
 ## Owner approvals from the chat
 
