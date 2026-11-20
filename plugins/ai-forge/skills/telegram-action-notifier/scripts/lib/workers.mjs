@@ -143,7 +143,9 @@ export async function startWorker(spec, { sessionId = randomUUID() } = {}) {
     };
     if (spec.parent) session.parent = spec.parent;
     if (spec.requestedBy) session.requestedBy = spec.requestedBy;
+    if (spec.boss) session.boss = true;
     state.sessions[sessionId] = session;
+    if (spec.boss) state.meta.bossSessionId = sessionId; // General belongs to it from now on
   });
   launchRunner(sessionId);
   await ensureDaemon();
@@ -188,6 +190,27 @@ export async function wakeBoss(settings, sessionId) {
   launchRunner(sid);
   await logLine(`boss ${sid}: app process stopped, resuming headless`);
   return "started";
+}
+
+/** The first prompt of a Boss the bridge creates: the same start as the boss skill asks for. */
+export const BOSS_BRIEF =
+  "You are the Boss. Load the /ai-forge:boss skill and follow it strictly: the owner writes to you from the General channel in Discord or the General topic in Telegram, you hand every task to a child session with `spawn`, and you reply briefly in the owner's language. The bridge created this session because no Boss was running, so earlier context is gone: run `sessions --json` first to see what is going on. Then answer the owner's messages below.";
+
+/**
+ * There must always be a Boss. No Boss to resume (none bound, or its conversation
+ * is gone): start a new one headless in `bossCwd` (default: home), bind it to
+ * General and give it the boss start prompt together with the owner's messages.
+ */
+export async function createBoss(settings, { prompt = "" } = {}) {
+  const cwd = settings.bossCwd || os.homedir();
+  const permissionMode = settings.workerPermissions === "auto" ? "auto" : settings.workerDefaults.permissionMode;
+  const sessionId = await startWorker({
+    title: L("Босс", "Boss"), project: projectName(cwd), cwd, boss: true,
+    model: BOSS_REVIVE.model, effort: BOSS_REVIVE.effort, permissionMode,
+    brief: prompt ? `${BOSS_BRIEF}\n\n${prompt}` : BOSS_BRIEF,
+  });
+  await logLine(`boss ${sessionId}: created headless (no Boss to resume)`);
+  return sessionId;
 }
 
 /** Run claude, stdout/stderr to per-session files. Resolves { code, json, stderr, error }. */
@@ -273,6 +296,16 @@ export async function runWorker(sessionId, { exec = execClaude } = {}) {
       runs += 1;
       const result = await exec(claudeBinary(settings), buildWorkerArgs(sid, spec, job), { cwd: session.cwd, sessionId: sid });
       await logLine(`worker ${sid} run ${runs}: exit ${result.code}`);
+      // A Boss whose conversation is gone cannot be resumed: replace it, keep the message.
+      if (!session.headless && session.revive && result.code !== 0 && /no conversation found|not found|does not exist/i.test(result.stderr ?? "")) {
+        await updateState((state) => {
+          const old = state.sessions[sid];
+          if (old) { old.closed = true; delete old.revive; }
+          if (state.meta.bossSessionId === sid) delete state.meta.bossSessionId;
+        });
+        await createBoss(settings, { prompt: job.prompt });
+        break;
+      }
       await reportFailure(settings, sid, session, result);
       job = null;
     }

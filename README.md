@@ -110,7 +110,7 @@ A private chat with the bot works too: turn on Threaded Mode for the bot in @Bot
 
 **Confirm actions from your phone.** A reply from the chat is not consent for an action that touches other people, for example sending a message, deploying or merging: Claude Code marks chat replies as not user input. So the session doesn't ask in the chat. It arms `confirm-next` and makes the exact call; Claude Code then asks for permission, and you get that call with **Allow** / **Deny** and a "Confirm: …" line. Allow approves only that call.
 
-**The Boss.** Name any session "Boss" and it takes the main channel (`🔥・general`, or General in Telegram). Drop a task there; the Boss splits it across project sessions and starts background ones (`claude -p`) after you press **▶️ Start**. If the app closed the Boss, a message in the main channel wakes it up in the background.
+**The Boss.** Name any session "Boss" and it takes the main channel (`🔥・general`, or General in Telegram). Drop a task there; the Boss splits it across project sessions and starts background ones (`claude -p`) after you press **▶️ Start**. There is always a Boss: if the app closed it, a message in the main channel wakes it up in the background; if there is no Boss at all (deleted, or its conversation is gone), the bridge starts a new one in the background with the boss start prompt (in `bossCwd`, default your home folder) and hands it your message.
 
 **Commands** (yours only):
 
@@ -161,7 +161,8 @@ Everything is in the panel or in `~/.codex/telegram-action-notifier/config.json`
 | `quietHours` | none | `{"from":"23:00","to":"08:00"}`: no sound |
 | `chatReplies` | `true` | `false`: ignore replies |
 | `telegramDenials` | `true` | `false`: don't send auto-mode blocks |
-| `bossRevive` | `true` | `false`: don't wake a stopped Boss |
+| `bossRevive` | `true` | `false`: don't wake or recreate the Boss |
+| `bossCwd` | home folder | where a new Boss starts when none exists |
 | `spawnConfirm` | `telegram` | `never`: start background sessions without asking |
 | `workerPermissions` | `telegram` | `auto`: background sessions run in `auto` mode |
 | `workerDefaults` | Sonnet 5.5, medium, `acceptEdits` | model, effort and mode for background sessions |

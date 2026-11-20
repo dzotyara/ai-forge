@@ -481,3 +481,25 @@ test("Boss never reopened after an app restart (not ended, no waiter): woken hea
     await bridge.takeInbox(sid);
   }
 });
+
+test("no Boss at all: a General message creates a new headless Boss with the boss start prompt", async () => {
+  await reset();
+  spawned.length = 0;
+  await bridge.updateState((state) => { state.meta = {}; });
+  const tg = mockTelegram(() => true);
+  try {
+    await bridge.handleUpdate(await common.loadSettings(), generalMessage(41));
+    const state = await bridge.readState();
+    const id = state.meta.bossSessionId;
+    assert.ok(id, "bound to General");
+    const boss = state.sessions[id];
+    assert.equal(boss.boss, true);
+    assert.equal(boss.headless, true);
+    assert.equal(boss.model, workers.BOSS_REVIVE.model);
+    assert.match(boss.job?.prompt ?? "", /You are the Boss/);
+    assert.match(boss.job?.prompt ?? "", /привет 41/);
+    assert.equal(spawned.length, 1, "its runner starts");
+  } finally {
+    tg.restore();
+  }
+});

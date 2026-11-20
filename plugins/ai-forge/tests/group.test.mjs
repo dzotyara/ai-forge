@@ -97,14 +97,14 @@ test("forum group without admin rights degrades to plain messages", async () => 
   }
 });
 
-test("General without a boss: the owner gets a short reply, strangers get nothing", async () => {
+test("General without a boss and bossRevive off: the owner gets a short reply, strangers get nothing", async () => {
   await bridge.updateState((state) => {
     state.sessions = {};
     state.meta = {};
   });
   const tg = mockTelegram(() => ({ message_id: 1 }));
   try {
-    const settings = await common.loadSettings();
+    const settings = { ...(await common.loadSettings()), bossRevive: false };
     const message = (from) => ({ update_id: 9, message: { message_id: 77, chat: { id: -1001234567890, type: "supergroup" }, from: { id: from }, text: "ты тут?" } });
     await bridge.handleUpdate(settings, message(31337));
     assert.equal(tg.calls.length, 0);

@@ -400,6 +400,9 @@ async function onPostToolUse(event) {
 /** Extra SessionStart context for a headless worker: who it is and how it reports. */
 export function headlessContext(session) {
   if (!session) return "";
+  if (session.boss) {
+    return " This is the Boss session, created headless (claude -p) by the bridge because no Boss was running. The app session tools are unavailable: start children with `spawn`. Your final message is posted to General; tool permissions are decided in Telegram or Discord. Follow the boss skill.";
+  }
   if (session.revive) {
     return " This is the Boss session, resumed headless (claude -p) because its app process stopped. The app session tools are unavailable on this run: start children with `spawn`. Your final message is posted to General; tool permissions are decided in Telegram. Keep following the boss skill.";
   }
