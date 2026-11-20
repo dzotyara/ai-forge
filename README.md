@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="#install-in-30-seconds"><img src="https://img.shields.io/badge/Install-30%20seconds-f97316?style=for-the-badge" alt="Install in 30 seconds"></a>
+  <a href="#install-in-30-seconds"><img src="https://img.shields.io/badge/Install-30%20seconds-16a34a?style=for-the-badge" alt="Install in 30 seconds"></a>
   <a href="#see-it-in-action"><img src="https://img.shields.io/badge/See%20it-in%20action-5865F2?style=for-the-badge" alt="See it in action"></a>
   <a href="https://github.com/dzotyara/ai-forge/stargazers"><img src="https://img.shields.io/github/stars/dzotyara/ai-forge?style=for-the-badge&color=fbbf24&label=%E2%AD%90%20Stars" alt="Stars"></a>
   <a href="https://boosty.to/dzotyara"><img src="https://img.shields.io/badge/Boosty-support-f15f2c?style=for-the-badge&logo=boosty&logoColor=white" alt="Support on Boosty"></a>

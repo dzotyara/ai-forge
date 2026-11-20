@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="#install-30"><img src="https://img.shields.io/badge/%D0%A3%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%BA%D0%B0-30%20%D1%81%D0%B5%D0%BA%D1%83%D0%BD%D0%B4-f97316?style=for-the-badge" alt="Установка за 30 секунд"></a>
+  <a href="#install-30"><img src="https://img.shields.io/badge/%D0%A3%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%BA%D0%B0-30%20%D1%81%D0%B5%D0%BA%D1%83%D0%BD%D0%B4-16a34a?style=for-the-badge" alt="Установка за 30 секунд"></a>
   <a href="#demo"><img src="https://img.shields.io/badge/%D0%9F%D0%BE%D1%81%D0%BC%D0%BE%D1%82%D1%80%D0%B5%D1%82%D1%8C-%D0%B2%20%D0%B4%D0%B5%D0%BB%D0%B5-5865F2?style=for-the-badge" alt="Посмотреть в деле"></a>
   <a href="https://github.com/dzotyara/ai-forge/stargazers"><img src="https://img.shields.io/github/stars/dzotyara/ai-forge?style=for-the-badge&color=fbbf24&label=%E2%AD%90%20Stars" alt="Stars"></a>
   <a href="https://boosty.to/dzotyara"><img src="https://img.shields.io/badge/Boosty-support-f15f2c?style=for-the-badge&logo=boosty&logoColor=white" alt="Поддержать на Boosty"></a>

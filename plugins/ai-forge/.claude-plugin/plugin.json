@@ -1,6 +1,6 @@
 {
   "name": "ai-forge",
-  "version": "1.21.1",
+  "version": "1.21.2",
   "description": "AI Forge: Claude Code sessions in Discord and Telegram. A channel per session, approval and question buttons, replies from your phone, a Boss session and a Discord status.",
   "author": {
     "name": "dzotyara"
