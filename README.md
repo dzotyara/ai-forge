@@ -2,66 +2,115 @@
   <img src="docs/banner.png" alt="AI Forge" width="100%">
 </p>
 
+<h1 align="center">Your AI agents never wait for you again</h1>
+
 <p align="center">
-  <b>Claude Code sessions in Discord and Telegram</b><br>
-  Approve, answer and reply from your phone while your agents keep working on your Mac
+  <b>AI Forge turns Discord and Telegram into the control room for Claude Code.</b><br>
+  Approve, answer and steer every session from your phone while the work keeps going on your Mac.
 </p>
 
 <p align="center">
-  <a href="https://github.com/dzotyara/ai-forge/stargazers"><img src="https://img.shields.io/github/stars/dzotyara/ai-forge?style=flat&color=f97316" alt="Stars"></a>
+  <a href="#install-in-30-seconds"><img src="https://img.shields.io/badge/Install-30%20seconds-f97316?style=for-the-badge" alt="Install in 30 seconds"></a>
+  <a href="#see-it-in-action"><img src="https://img.shields.io/badge/See%20it-in%20action-5865F2?style=for-the-badge" alt="See it in action"></a>
+  <a href="https://github.com/dzotyara/ai-forge/stargazers"><img src="https://img.shields.io/github/stars/dzotyara/ai-forge?style=for-the-badge&color=fbbf24&label=%E2%AD%90%20Stars" alt="Stars"></a>
+</p>
+
+<p align="center">
   <a href="https://github.com/dzotyara/ai-forge/actions/workflows/test.yml"><img src="https://github.com/dzotyara/ai-forge/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
   <img src="https://img.shields.io/badge/Claude%20Code-plugin-d97757" alt="Claude Code plugin">
+  <img src="https://img.shields.io/badge/Codex-supported-10a37f" alt="Codex supported">
   <img src="https://img.shields.io/badge/node-%E2%89%A522-3c873a" alt="Node 22+">
+  <img src="https://img.shields.io/badge/server-none%20needed-64748b" alt="No server needed">
 </p>
 
 <p align="center">
   <b>English</b> · <a href="README.ru.md">Русский</a>
 </p>
 
-> ⭐ If AI Forge saves you a trip to your laptop, please star the repo. It helps other people find it and tells me it's worth building further.
+---
 
-## What it is
+## The problem
 
-AI Forge is a Claude Code plugin. Every session gets its own Discord channel (or Telegram topic), and anything that needs a human shows up there with buttons:
+You give Claude Code a big task and step away. Five minutes later it stops at *"Allow this command?"* and waits. You come back an hour later to an idle session and a cold coffee.
 
-- a permission request for a command or an edit: **Allow** / **Deny**
-- a multiple-choice question (`AskUserQuestion`): one button per option
-- "I need you" turns (`ACTION_REQUIRED`) and the next-step question at the end of a turn
-- a summary of every finished turn, posted silently
+## The fix
 
-Reply with plain text in the channel and the session wakes up and keeps going. No need to walk back to your laptop.
+AI Forge sends every moment that needs you to the chat you already have open, with buttons. One tap and the agent is back at work.
+
+<table>
+<tr>
+<td width="33%" valign="top">
+
+### ✅ Approve from anywhere
+Permission requests, multiple-choice questions and "I need you" turns arrive with **Allow / Deny** and answer buttons. Codex requests too, even from another machine.
+
+</td>
+<td width="33%" valign="top">
+
+### 💬 Talk to every session
+Each session gets its own private channel. Reply in plain text and the session wakes up and continues, as if you typed in the app.
+
+</td>
+<td width="33%" valign="top">
+
+### 🔥 Run a fleet with a Boss
+Write a task in the main channel. The Boss splits it across sessions, starts background workers after your **▶️ Start**, and reports back.
+
+</td>
+</tr>
+</table>
 
 <p align="center">
-  <img src="docs/discord-session.png" alt="A session in Discord: a finished turn, a permission request, a question with options, and a reply" width="90%">
+  <b>1 tap</b> to approve · <b>0 servers</b> to host · <b>100%</b> of your tokens stay on your machine
 </p>
+
+## See it in action
+
+<p align="center">
+  <img src="docs/discord-session.png" alt="A Claude Code session in Discord: a finished turn, a permission request, a question with options" width="90%">
+</p>
+
+| | |
+|---|---|
+| ![Approved in Discord](docs/discord-answered.png) | ![Background session request in the main channel](docs/discord-spawn.png) |
+| Allowed and answered from Discord; only you see the confirmation | The Boss asks before it starts a background session |
+| ![A session topic in Telegram](docs/telegram-session.png) | ![Answered from Telegram](docs/telegram-answered.png) |
+| The same session as a Telegram topic | Allowed and answered from Telegram, then a text reply |
+| ![Your Discord profile while agents work](docs/discord-rich-presence.png) | ![Settings panel](docs/settings-panel.png) |
+| Your Discord profile shows how many agents are working | A local settings panel in English or Russian |
+
+## How it works
+
+```mermaid
+flowchart LR
+  A["Claude Code / Codex session"] -- "needs you" --> B["AI Forge hooks"]
+  B --> C["AI Forge service on your Mac"]
+  C -- "message with buttons" --> D["Discord / Telegram"]
+  D -- "Allow · answer · reply" --> C
+  C -- "decision or your text" --> A
+```
+
+Everything runs on your machine: a small background service and the plugin's hooks. There is no AI Forge server and no account to create. Your bot tokens never leave your computer.
 
 ## Features
 
 | | Discord | Telegram |
 |---|---|---|
-| A channel or topic per session | ✅ private `🤖・<name>` channel | ✅ forum topic |
+| A private channel or topic per session | ✅ `🤖・<name>` | ✅ forum topic |
 | Buttons for permissions and questions | ✅ | ✅ |
-| A text reply or a reply-to wakes the session | ✅ | ✅ |
+| A text reply wakes the session | ✅ | ✅ |
 | Allow once what auto mode blocked | ✅ | ✅ |
-| A Boss session in the main channel, background sessions on demand | ✅ `🔥・general` | ✅ General |
+| Confirm outward actions (deploy, send, merge) with a real permission prompt | ✅ | ✅ |
+| A Boss in the main channel, always on, background sessions on demand | ✅ `🔥・general` | ✅ General |
+| Codex approvals, across devices | ✅ | notifications |
+| Quiet by default, a ping only when you're needed | ✅ | ✅ |
 | `/status` `/away` `/here` `/mute` | ✅ slash commands | ✅ |
-| Quiet by default, a ping only when you're needed | ✅ | ✅ smart delivery |
-| "Playing AI Forge" on the bot and on your profile | ✅ | — |
-| English and Russian interface | ✅ | ✅ |
+| "Playing AI Forge" with a live agent count on your profile | ✅ | — |
+| English and Russian | ✅ | ✅ |
 
 Use Discord, Telegram, or both. With both, a request shows up in both places and the first answer wins.
 
-## Screenshots
-
-| | |
-|---|---|
-| ![Approved in Discord](docs/discord-answered.png) | ![Background session request in the main channel](docs/discord-spawn.png) |
-| A permission and a question answered from Discord; only you see the confirmation | The Boss asks before starting a background session |
-| ![Your Discord profile while sessions work](docs/discord-rich-presence.png) | ![Settings panel](docs/settings-panel.png) |
-| Your Discord profile shows how many agents are working | The local settings panel, with an English / Русский switch |
-| ![A session topic in Telegram](docs/telegram-session.png) | ![Answered from Telegram](docs/telegram-answered.png) |
-| The same session in a Telegram topic | Allowed and answered from Telegram, then a reply |
-
+<a id="install-in-30-seconds"></a>
 ## Install
 
 You need Claude Code and Node.js 22+. Presence detection (whether you're at your computer) works on macOS; on other systems you're treated as away.
@@ -192,6 +241,29 @@ node --test plugins/ai-forge/tests/*.test.mjs
 ```
 
 Tests never touch the network: Telegram, Discord and Discord's socket are stubbed. The suite runs in Russian (`tests/lang-ru.mjs`); English checks import `tests/lang-en.mjs` first. Bump the version in both manifests: `plugins/ai-forge/plugin.json` and `plugins/ai-forge/.claude-plugin/plugin.json`.
+
+## FAQ
+
+**Is it safe to approve things from my phone?**
+The bot obeys only you, in your own private server or group. An approval covers exactly one call: you see the command or the tool input before you tap. A reply in the chat is never treated as consent for a deploy or a message to someone else; that always goes through a real permission prompt.
+
+**Do I need a server or a subscription?**
+No. AI Forge is a plugin plus a small background service on your machine. It talks to Discord and Telegram with your own bot.
+
+**Does it work with Codex?**
+Yes. Codex requests come to Discord with Allow / Deny, even when Codex runs on another device, and the agent count covers all your devices.
+
+**Windows and Linux?**
+Approvals, replies and the Boss work everywhere Claude Code runs. Presence detection (staying quiet while you're at the computer) is macOS only; elsewhere you're treated as away.
+
+**What does it cost?**
+Nothing. AI Forge is free and open source.
+
+## Support AI Forge
+
+- ⭐ **Star the repo.** It's the fastest way to help other people find it.
+- 📣 **Share it** with a friend who runs Claude Code all day.
+- 🐞 **Open an issue** with a bug or an idea: real use drives what comes next.
 
 ---
 
