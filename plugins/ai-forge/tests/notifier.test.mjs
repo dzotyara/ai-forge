@@ -123,3 +123,13 @@ test("working counts sessions and each running subagent", async () => {
   assert.equal(bridgeMod.workingSessions(state, Date.now(), () => false, ids), 4);
   assert.equal(bridgeMod.workingSessions({ sessions: { "busy-id": { ended: true } }, meta: {} }, Date.now(), () => false, ids), 2);
 });
+
+test("a session listens to the chat from its start, not only after its first turn", async () => {
+  const { readFileSync } = await import("node:fs");
+  const hooks = JSON.parse(readFileSync(new URL("../hooks/hooks.json", import.meta.url), "utf8")).hooks;
+  const waiter = (event) => hooks[event].flatMap((group) => group.hooks).find((hook) => hook.asyncRewake);
+  for (const event of ["SessionStart", "Stop"]) {
+    assert.ok(waiter(event), `${event} starts the reply waiter`);
+    assert.match(waiter(event).command, /wait-reply/);
+  }
+});
