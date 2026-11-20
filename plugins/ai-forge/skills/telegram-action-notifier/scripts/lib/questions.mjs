@@ -84,7 +84,11 @@ export async function readTurnQuestion(transcriptPath) {
 }
 
 export function turnQuestionHtml(question) {
-  return `❓ <b>${escapeHtml(question.ask)}</b>${question.options.length ? "" : L("\n<i>Ответьте сообщением в этой теме.</i>", "\n<i>Reply with a message in this topic.</i>")}`;
+  const hint = question.options.length
+    ? L("\n<i>Кнопка — ваш ответ в чате. Деплой, отправку и другие действия наружу сессия подтвердит отдельным запросом с Allow / Deny.</i>",
+      "\n<i>A button is your reply in the chat. A deploy, a message or another outward action gets its own request with Allow / Deny.</i>")
+    : L("\n<i>Ответьте сообщением в этой теме.</i>", "\n<i>Reply with a message in this topic.</i>");
+  return `❓ <b>${escapeHtml(question.ask)}</b>${hint}`;
 }
 
 /** Buttons for the next-step box: data "w:<i>"; a press reaches the session as the owner's reply. */
@@ -178,9 +182,17 @@ export function applyPress(questions, selections, qi, choice) {
 /** Free text answers the first open question. */
 export function applyText(questions, selections, text) {
   const next = structuredClone(selections ?? {});
-  const qi = questions.findIndex((_, i) => !next[i]?.done);
-  if (qi < 0) return next;
-  next[qi] = { picks: [String(text).trim()], done: true };
+  const reply = String(text).trim();
+  const open = questions.map((_, i) => i).filter((i) => !next[i]?.done);
+  if (!open.length) return next;
+  if (open.length === 1) {
+    next[open[0]] = { picks: [reply], done: true };
+    return next;
+  }
+  // Several open questions and a text reply: it answers the whole card, so the
+  // session gets the text at once instead of the card waiting for the rest.
+  const note = L(`Ответил текстом вместо выбора: «${reply}»`, `Replied with text instead of choosing: "${reply}"`);
+  for (const i of open) next[i] = { picks: [note], done: true };
   return next;
 }
 
