@@ -108,6 +108,8 @@ A private chat with the bot works too: turn on Threaded Mode for the bot in @Bot
 
 **Auto mode.** When the auto-mode classifier blocks an action, the channel gets what was blocked and why. **Allow once** allows exactly that call in that session for 30 minutes, and the session retries it.
 
+**Confirm actions from your phone.** A reply from the chat is not consent for an action that touches other people, for example sending a message, deploying or merging: Claude Code marks chat replies as not user input. So the session doesn't ask in the chat. It arms `confirm-next` and makes the exact call; Claude Code then asks for permission, and you get that call with **Allow** / **Deny** and a "Confirm: …" line. Allow approves only that call.
+
 **The Boss.** Name any session "Boss" and it takes the main channel (`🔥・general`, or General in Telegram). Drop a task there; the Boss splits it across project sessions and starts background ones (`claude -p`) after you press **▶️ Start**. If the app closed the Boss, a message in the main channel wakes it up in the background.
 
 **Commands** (yours only):
