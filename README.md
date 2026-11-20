@@ -154,6 +154,7 @@ Everything is in the panel or in `~/.codex/telegram-action-notifier/config.json`
 | `deliveryMode` | `smart` | `always`: send right away; `never`: send nothing |
 | `notify` | `all` | `action`: skip ordinary turns |
 | `approvalWaitSec` | `42900` (almost 12 h) | how long buttons wait; `0`: no buttons |
+| `codexApprovalWaitSec` | `900` | how long a Codex request waits for a button in Discord; `0`: notification only |
 | `presenceIdleSec` / `approvalGraceSec` / `actionGraceSec` | `120` / `90` / `180` | smart delivery thresholds |
 | `quietHours` | none | `{"from":"23:00","to":"08:00"}`: no sound |
 | `chatReplies` | `true` | `false`: ignore replies |
@@ -174,7 +175,7 @@ Everything is in the panel or in `~/.codex/telegram-action-notifier/config.json`
 
 ## Codex
 
-In Codex, AI Forge only sends: permission requests and "I need you" turns arrive in Discord or Telegram, and you answer in Codex.
+In Codex (0.166+) permission requests come to Discord with **Allow** / **Deny**. Codex waits up to 15 minutes (`codexApprovalWaitSec`, 900 s) and then asks in its own window. The press is received by the daemon on your Claude Code machine, which writes the answer into the message, and the Codex hook reads it from there, so it works across devices. Telegram stays notification-only for Codex. After updating, restart Codex and trust the new hooks in **Settings → Hooks**.
 
 ```bash
 codex plugin marketplace add dzotyara/ai-forge --ref main

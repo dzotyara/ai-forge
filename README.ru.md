@@ -156,6 +156,7 @@ AI Forge по умолчанию молчит, пока вы за компьют
 | `deliveryMode` | `smart` | `always` - всегда сразу, `never` - ничего |
 | `notify` | `all` | `action` - не присылать обычные ходы |
 | `approvalWaitSec` | `42900` (почти 12 ч) | сколько ждать кнопку; `0` - без кнопок |
+| `codexApprovalWaitSec` | `900` | сколько запрос Codex ждёт кнопку в Discord; `0` — только уведомление |
 | `presenceIdleSec` / `approvalGraceSec` / `actionGraceSec` | `120` / `90` / `180` | пороги умной доставки |
 | `quietHours` | нет | `{"from":"23:00","to":"08:00"}` - без звука |
 | `chatReplies` | `true` | `false` - не принимать ответы |
@@ -176,7 +177,7 @@ AI Forge по умолчанию молчит, пока вы за компьют
 
 ## Codex
 
-В Codex AI Forge работает только на отправку: запросы разрешений и «нужно действие» приходят в Discord или Telegram, отвечать нужно в Codex.
+В Codex (0.166+) запросы разрешений приходят в Discord с кнопками **Allow** / **Deny**. Codex ждёт до 15 минут (`codexApprovalWaitSec`, 900 с), потом спрашивает в своём окне. Нажатие принимает служба на машине с Claude Code: она записывает ответ прямо в сообщение, а хук Codex читает его оттуда, поэтому это работает и с другого устройства. Telegram для Codex по-прежнему только уведомляет. После обновления перезапустите Codex и подтвердите новые хуки в **Settings → Hooks**.
 
 ```bash
 codex plugin marketplace add dzotyara/ai-forge --ref main

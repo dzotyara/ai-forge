@@ -16,11 +16,12 @@ import {
   isPrivateChatId,
   isQuietTime,
   discordSettings,
+  isClaudeCode,
   loadNotificationSettings as loadSettings,
   redactSecrets,
   telegram,
 } from "./common.mjs";
-import { botUser, connectDiscord, discordApi, slashCommands } from "./discord.mjs";
+import { REMOTE_LINE, botUser, connectDiscord, discordApi, remoteDecision, slashCommands } from "./discord.mjs";
 import { connectRichPresence, richPresenceActivity } from "./rpc.mjs";
 import { codexWorking, fleetTotals, otherDevices, reportDevice } from "./devices.mjs";
 import { escapeHtml, htmlToPlain, projectName, truncateText } from "./format.mjs";
@@ -1080,15 +1081,25 @@ const decided = (outcome) =>
  * While waiting it is also a pending item, so PostToolUse/UserPromptSubmit
  * (the user answered in the app) end the wait early.
  */
-export async function requestApproval(settings, ctx, html, waitSec, { pollMs = 400, toolName = null, timeoutOutcome = "timeout", keyboard = approvalKeyboard, graceSec = 0, silent = false, presenceEveryMs = 10_000 } = {}) {
+export async function requestApproval(settings, ctx, html, waitSec, { pollMs = 400, toolName = null, timeoutOutcome = "timeout", keyboard = approvalKeyboard, graceSec = 0, silent = false, presenceEveryMs = 10_000, remote = false, remotePollMs = 4000 } = {}) {
   const requestId = randomBytes(8).toString("hex");
   const request = files.approval(requestId, "req");
   await writeJsonAtomic(request, { sessionId: ctx.sessionId, html, pid: process.pid, createdAt: Date.now() });
+  // remote: no daemon on this device receives button presses (Codex). The request
+  // goes to Discord only; the daemon on another device writes the decision into the
+  // message, and this hook reads it back.
+  const discord = remote ? discordSettings(settings) : null;
   let sent;
   let pendingId = null;
   const finish = async (behavior) => {
     if (!(await createExclusive(files.approval(requestId, "res"), { behavior, at: Date.now() }))) return false;
-    if (sent?.messageIds?.length) {
+    if (discord && sent?.messageIds?.length) {
+      await sendHtml(discord.token, "editMessageText", {
+        message_id: sent.messageIds.at(-1),
+        text: `${html}\n\n${OUTCOME_TEXT[behavior]}`,
+        parse_mode: "HTML",
+      }).catch((error) => logLine(`edit approval: ${error.message}`));
+    } else if (sent?.messageIds?.length) {
       await editNotification(settings, "editMessageText", {
         chat_id: settings.chatId,
         message_id: sent.messageIds.at(-1),
@@ -1107,7 +1118,7 @@ export async function requestApproval(settings, ctx, html, waitSec, { pollMs = 4
   process.once("SIGHUP", onSignal);
   const pendingAlive = async () => Boolean((await readState()).pending[pendingId]);
   try {
-    await ensureDaemon();
+    if (!discord) await ensureDaemon();
     // The owner is at the Mac: give the app dialog `graceSec` first (a held item the
     // daemon never sends; an answer in the app removes it), then send the buttons.
     pendingId = await addPending({ kind: "approval", ctx, parts: [html], toolName, hold: true });
@@ -1123,7 +1134,7 @@ export async function requestApproval(settings, ctx, html, waitSec, { pollMs = 4
       await sleep(pollMs);
     }
     if (!(await pendingAlive())) return null;
-    sent = await deliver(settings, ctx, [html], {
+    sent = await deliver(discord ?? settings, ctx, [discord ? `${html}\n${REMOTE_LINE}` : html], {
       ping: true,
       replyMarkup: keyboard(requestId),
       silent: silent || isQuietTime(settings.quietHours),
@@ -1137,9 +1148,16 @@ export async function requestApproval(settings, ctx, html, waitSec, { pollMs = 4
       item.messageIds = sent.messageIds;
     });
     const deadline = Date.now() + waitSec * 1000;
+    let readAt = 0;
     while (Date.now() < deadline) {
       const outcome = await readOutcome(requestId);
       if (outcome) return decided(outcome);
+      if (discord && Date.now() - readAt >= remotePollMs) {
+        readAt = Date.now();
+        const message = await telegram(discord.token, "getMessage", { message_id: sent.messageIds.at(-1) }).catch(() => null);
+        const behavior = remoteDecision(message?.content);
+        if (behavior && (await createExclusive(files.approval(requestId, "res"), { behavior, at: Date.now() }))) return behavior;
+      }
       if (!(await pendingAlive())) {
         await finish("app");
         return null;
@@ -1336,11 +1354,14 @@ export async function ensureDaemon() {
   const pid = await readDaemonPid();
   if (pid && pidAlive(pid)) return pid;
   await ensureDir(stateDir());
+  // A daemon started from a Codex hook only sends and reports: Codex sets PLUGIN_ROOT
+  // and not CLAUDE_PLUGIN_ROOT. Started from Claude Code, the panel or a terminal, it listens.
+  const fromCodex = !isClaudeCode() && Boolean(process.env.PLUGIN_ROOT);
   const child = spawn(process.execPath, [ENTRY_SCRIPT, "daemon"], {
     detached: true,
     stdio: "ignore",
     cwd: os.homedir(),
-    env: process.env,
+    env: fromCodex ? { ...process.env, AI_FORGE_LISTEN: "0" } : process.env,
   });
   child.unref();
   return child.pid;
@@ -1580,7 +1601,16 @@ async function handleCallback(settings, route) {
     telegram(settings.token, "answerCallbackQuery", { callback_query_id: route.callbackId, text })
       .catch(() => {});
   const request = await readJson(files.approval(route.requestId, "req"), null);
-  if (!request || !pidAlive(request.pid)) return answer(L("Запрос уже закрыт", "Request already closed"));
+  if (!request || !pidAlive(request.pid)) {
+    // Not a request of this device: if its hook waits on another device, record the decision there.
+    if (settings.token?.channel) {
+      const recorded = await telegram(settings.token, "recordRemoteDecision", {
+        message_id: route.messageId, behavior: route.behavior, outcome: OUTCOME_TEXT[`${route.behavior}-discord`],
+      }).catch(() => ({ ok: false }));
+      if (recorded?.ok) return answer(route.behavior === "allow" ? L("Разрешено", "Allowed") : L("Отклонено", "Denied"));
+    }
+    return answer(L("Запрос уже закрыт", "Request already closed"));
+  }
   if (!(await createExclusive(files.approval(route.requestId, "res"), { behavior: route.behavior, at: Date.now() }))) {
     return answer(L("Уже решено", "Already decided"));
   }
@@ -1974,8 +2004,12 @@ export async function runDaemon({ idleMs = DAEMON_IDLE_MS, tickMs = 5000, presen
 
   const meta = (await readState()).meta;
   const discord = settings.notificationTarget === "telegram" ? null : discordSettings(settings);
-  const telegramEnabled = !settings.token?.channel;
-  if (discord) {
+  // A daemon started from a Codex hook (AI_FORGE_LISTEN=0, see ensureDaemon) sends and
+  // reports, but never polls Telegram or opens the Discord Gateway: two listeners on
+  // one bot split the button presses between devices.
+  const listens = process.env.AI_FORGE_LISTEN !== "0";
+  const telegramEnabled = !settings.token?.channel && listens;
+  if (discord && listens) {
     // Count working agents before the first status goes out, not one tick later.
     await refreshActiveTranscripts().catch(() => {});
     transcriptsAt = Date.now();
@@ -2042,6 +2076,7 @@ export async function runDaemon({ idleMs = DAEMON_IDLE_MS, tickMs = 5000, presen
   })();
 
   if (!telegramEnabled) return ticker;
+
 
   // Poller: the only getUpdates consumer for this token.
   let offset = (await readJson(files.offset(), {})).offset ?? 0;

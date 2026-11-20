@@ -265,7 +265,11 @@ async function onPermissionRequest(event, settings) {
   // Buttons whenever this hook can decide (Claude Code). The app dialog runs in
   // parallel and is not blocked by the hook: whoever answers first decides. At the
   // Mac the buttons wait `approvalGraceSec` (or until you step away) first.
-  const buttons = isClaudeCode() && settings.approvalWaitSec > 0;
+  // Codex: its hook can decide too (Codex 0.166+). No daemon here receives presses,
+  // so the request goes to Discord and the daemon on another device records the answer.
+  const remote = !isClaudeCode() && settings.notificationTarget !== "telegram" && Boolean(discordSettings(settings)) &&
+    settings.codexApprovalWaitSec > 0;
+  const buttons = (isClaudeCode() && settings.approvalWaitSec > 0) || remote;
   const [html] = buildMessageParts(event, { title: ctx.title, buttons });
   if (decision.action === "delay" && !buttons) {
     await addPending({ kind: "approval", ctx, parts: [html], toolName, silent: decision.silent, delaySec: decision.delaySec });
@@ -278,10 +282,11 @@ async function onPermissionRequest(event, settings) {
     }
     return;
   }
-  const behavior = await requestApproval(settings, ctx, html, settings.approvalWaitSec, {
+  const behavior = await requestApproval(settings, ctx, html, remote ? settings.codexApprovalWaitSec : settings.approvalWaitSec, {
     toolName,
     graceSec: decision.action === "delay" ? decision.delaySec : 0,
     silent: decision.silent,
+    remote,
   });
   if (behavior) process.stdout.write(JSON.stringify(permissionDecision(behavior)));
 }
