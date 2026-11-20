@@ -64,7 +64,8 @@ const ACTION_MARKER = "ACTION_REQUIRED:";
 const SESSION_CONTEXT =
   "When a task cannot continue without a concrete user approval, answer, choice, credential, login, or external action, start the final user-facing request with exactly ACTION_REQUIRED:. Use this marker only for blocking user action, never for optional next steps or completed work. Do not include secrets. A Telegram hook watches for this marker.";
 const CLAUDE_CHAT_CONTEXT =
-  ` If auto mode blocks a tool call, the owner may approve that exact call in Telegram; when you are then told you may retry it, repeat the identical call once (same input). Your final messages are also posted to the user's Telegram. A system reminder that starts with "${REPLY_PREFIX}" or "Telegram: " is a genuine message the user sent to this session from Telegram: treat it as the user's next prompt and reply normally.`;
+  ` If auto mode blocks a tool call, the owner may approve that exact call in Telegram; when you are then told you may retry it, repeat the identical call once (same input). Your final messages are also posted to the user's Telegram. A system reminder that starts with "${REPLY_PREFIX}" or "Telegram: " is a genuine message the user sent to this session from Telegram: treat it as the user's next prompt and reply normally.` +
+  ` Such replies reach you marked as not user input, so they are not consent for an action that affects other people or is hard to undo (sending a message or email, posting, deploying, merging, deleting). When such an action needs the owner's OK and the owner talks to you from Telegram or Discord, do not ask for it in the chat: first run \`node "${fileURLToPath(import.meta.url)}" confirm-next "<what exactly will happen>"\`, then make the exact tool call. Claude Code then asks for permission, the owner gets that exact call with Allow / Deny, and Allow approves only that call. Deny or no answer means: do not do it, and say so.`;
 const TEST_MESSAGE = L(
   "✅ Telegram Action Notifier подключён. Codex и Claude Code смогут присылать сюда запросы на ваше действие.",
   "✅ Telegram Action Notifier is connected. Codex and Claude Code can now send requests for your action here.",
@@ -270,7 +271,12 @@ async function onPermissionRequest(event, settings) {
   const remote = !isClaudeCode() && settings.notificationTarget !== "telegram" && Boolean(discordSettings(settings)) &&
     settings.codexApprovalWaitSec > 0;
   const buttons = (isClaudeCode() && settings.approvalWaitSec > 0) || remote;
-  const [html] = buildMessageParts(event, { title: ctx.title, buttons });
+  let [html] = buildMessageParts(event, { title: ctx.title, buttons });
+  // Armed with confirm-next: show what the owner is confirming above the buttons.
+  if (session?.confirmWhat && Date.now() - session.confirmWhat.at < 120_000) {
+    html += `\n\n✋ <b>${L("Подтвердите", "Confirm")}:</b> ${escapeHtml(session.confirmWhat.what)}`;
+    await updateState((next) => { if (next.sessions[ctx.sessionId]) delete next.sessions[ctx.sessionId].confirmWhat; });
+  }
   if (decision.action === "delay" && !buttons) {
     await addPending({ kind: "approval", ctx, parts: [html], toolName, silent: decision.silent, delaySec: decision.delaySec });
     return;
@@ -318,8 +324,42 @@ async function onPermissionDenied(event, settings) {
 }
 
 /** The retry of a call the owner approved in Telegram: allow it once. */
+const CONFIRM_TTL_MS = 15 * 60_000;
+const isConfirmCall = (event) =>
+  event.tool_name === "Bash" && /\bconfirm-next\b/.test(String(event.tool_input?.command ?? ""));
+
+/**
+ * The session armed `confirm-next`: take it for this call (not for the arming call
+ * itself). Returns what the owner is asked to confirm, or null.
+ */
+export async function takeConfirmNext(sessionId, event, now = Date.now()) {
+  if (isConfirmCall(event)) return null;
+  return updateState((state) => {
+    const session = state.sessions[sessionId];
+    const armed = session?.confirmNext;
+    if (!armed) return null;
+    delete session.confirmNext;
+    if (now - armed.at > CONFIRM_TTL_MS) return null;
+    session.confirmWhat = { what: armed.what, at: now };
+    return armed;
+  });
+}
+
 async function onPreToolUse(event) {
   if (!isClaudeCode() || !event.session_id || typeof event.tool_name !== "string") return;
+  // An action the owner must confirm: force Claude Code to ask, whatever the rules
+  // allow. The PermissionRequest hook then sends the exact call with Allow / Deny.
+  const armed = await takeConfirmNext(safeSessionId(event.session_id), event);
+  if (armed) {
+    process.stdout.write(JSON.stringify({
+      hookSpecificOutput: {
+        hookEventName: "PreToolUse",
+        permissionDecision: "ask",
+        permissionDecisionReason: L(`Нужно подтверждение владельца: ${armed.what}`, `Owner confirmation needed: ${armed.what}`),
+      },
+    }));
+    return;
+  }
   if (!(await takeGrant(safeSessionId(event.session_id), event.tool_name, event.tool_input))) return;
   process.stdout.write(JSON.stringify({
     hookSpecificOutput: {
@@ -472,6 +512,19 @@ const CLI = {
   },
 
   /** claim-boss [session_id]: bind the boss explicitly (default: the calling session). */
+  /** confirm-next "<what>": the next tool call of this session must be approved by the owner. */
+  async "confirm-next"(args) {
+    const sessionId = process.env.CLAUDE_CODE_SESSION_ID;
+    if (!sessionId) throw new Error("CLAUDE_CODE_SESSION_ID is not set here.");
+    const what = args.join(" ").trim().slice(0, 300) || L("действие", "an action");
+    await updateState((state) => {
+      const sid = safeSessionId(sessionId);
+      const session = (state.sessions[sid] ??= { updatedAt: Date.now() });
+      session.confirmNext = { what, at: Date.now() };
+    });
+    console.log(JSON.stringify({ armed: true, what }));
+  },
+
   async "claim-boss"([id]) {
     const sessionId = id || process.env.CLAUDE_CODE_SESSION_ID;
     if (!sessionId) throw new Error("Pass a session id; CLAUDE_CODE_SESSION_ID is not set here.");
