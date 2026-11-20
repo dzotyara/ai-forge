@@ -1809,6 +1809,17 @@ export async function handleUpdate(settings, update, { presenceNow = async () =>
     else params.reply_parameters = { message_id: route.messageId };
     return telegram(settings.token, "sendMessage", params).catch(() => {});
   };
+  // Not running at all: an app session that was never reopened after the app
+  // restarted (no SessionEnd, so not `ended`) has no waiter, no turn and an idle
+  // transcript. The Boss is then woken headless; others are told to open the session.
+  const asleep = isAsleep(state, route.sessionId, session);
+  if (asleep && (route.sessionId === state.meta.bossSessionId || isBossTitle(session.title))) {
+    await updateState((next) => {
+      const current = next.sessions[route.sessionId];
+      if (current && !current.ended) { current.ended = true; current.endedAt = Date.now(); }
+    });
+    session.ended = true;
+  }
   const reviveBoss = Boolean(settings.bossRevive && session?.ended && route.sessionId === dormantBossId(state));
   if (session?.ended && !reviveBoss) return notice(L("Эта сессия уже завершена, сообщение не доставлено.", "This session has ended. Message not delivered."));
   if (session?.host === "Codex") return notice(L("Из Telegram можно отвечать только сессиям Claude Code.", "You can reply from Telegram only to Claude Code sessions."));
@@ -1835,6 +1846,12 @@ export async function handleUpdate(settings, update, { presenceNow = async () =>
     else await workers.wakeBoss(settings, route.sessionId);
     return undefined;
   }
+  if (asleep) {
+    return notice(L(
+      "💤 Сессия сейчас не запущена в приложении. Откройте её в Claude, и она сразу получит сообщение.",
+      "💤 This session isn't running in the app. Open it in Claude and it gets the message right away.",
+    ));
+  }
   if (!hasLiveWaiter(session)) {
     return notice(L(
       "⏳ Сессия сейчас занята. Передам сообщение, как только она закончит текущий ответ.",
@@ -1842,6 +1859,14 @@ export async function handleUpdate(settings, update, { presenceNow = async () =>
     ));
   }
   return undefined;
+}
+
+/** An app session that is not running: no live waiter, no turn in progress, idle transcript. */
+export function isAsleep(state, sessionId, session, now = Date.now(), alive = pidAlive, active = activeTranscriptIds) {
+  if (!session || session.ended || session.headless || session.closed || session.host === "Codex") return false;
+  if (hasLiveWaiter(session, alive)) return false;
+  if (now - (state.meta?.turns?.[sessionId] ?? 0) < TURN_STALE_MS) return false;
+  return ![...active].some((id) => id === sessionId || id.startsWith(`${sessionId}/`));
 }
 
 const BOT_COMMANDS = [
