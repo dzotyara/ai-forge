@@ -31,6 +31,13 @@ const GENERAL_TOPIC = L(
 
 export const DEFAULT_ACTIVITY = "AI Forge";
 
+// Approvals whose hook runs on another device carry REMOTE_MARK; the daemon that
+// gets the press appends DECISION_MARK with the owner's choice.
+export const REMOTE_LINE = "-# ai-forge remote";
+const REMOTE_MARK = /^-# ai-forge remote$/m;
+const DECISION_MARK = /^-# ai-forge decision=(allow|deny)$/m;
+export const remoteDecision = (content) => DECISION_MARK.exec(String(content ?? ""))?.[1] ?? null;
+
 // Gateway close codes that stop reconnecting, with what the owner should do.
 const FATAL_CLOSE = {
   4004: L("Discord не принял токен бота. Подключите Discord в панели заново.", "Discord rejected the bot token. Connect Discord again in the panel."),
@@ -300,6 +307,25 @@ export async function discordCall(bot, method, params) {
       const emoji = params.reaction?.[0]?.emoji;
       if (messagePath && emoji) return discordApi(bot, "PUT", `${messagePath}/reactions/${encodeURIComponent(emoji)}/@me`);
       return null;
+    }
+    case "getMessage": {
+      if (!messagePath) return null;
+      const message = await discordApi(bot, "GET", messagePath);
+      return { content: message?.content ?? "", components: message?.components ?? [] };
+    }
+    case "recordRemoteDecision": {
+      // An approval whose hook waits on another device: write the outcome into the
+      // message itself, where that hook reads it (see requestApproval's `remote`).
+      if (!messagePath) return { ok: false };
+      const message = await discordApi(bot, "GET", messagePath);
+      const content = String(message?.content ?? "");
+      if (!REMOTE_MARK.test(content) || DECISION_MARK.test(content)) return { ok: false };
+      const body = content.replace(`<@${bot.owner}> `, "");
+      await discordApi(bot, "PATCH", messagePath, {
+        content: `${body}\n\n${discordMarkdown(params.outcome ?? "")}\n-# ai-forge decision=${params.behavior}`,
+        allowed_mentions: allowedMentions, components: [],
+      });
+      return { ok: true };
     }
     case "removeOwnerMention": {
       // The question was settled elsewhere: drop the leading @owner ping, keep text and buttons.

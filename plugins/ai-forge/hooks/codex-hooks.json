@@ -1,5 +1,5 @@
 {
-  "description": "Telegram alerts for Codex: one-way notifications (two-way features are Claude Code only).",
+  "description": "Codex hooks: notifications, approvals from Discord, and the device presence reporter.",
   "hooks": {
     "SessionStart": [
       {
@@ -21,9 +21,8 @@
           {
             "type": "command",
             "command": "node -e \"import(require('node:url').pathToFileURL(require('node:path').join(process.env.CLAUDE_PLUGIN_ROOT||process.env.PLUGIN_ROOT,'skills','telegram-action-notifier','scripts','telegram-action-notifier.mjs')).href).then(m=>m.run())\"",
-            "timeout": 10,
-            "statusMessage": "Waiting for a Telegram approval",
-            "async": true
+            "timeout": 960,
+            "statusMessage": "Waiting for an approval in Discord"
           }
         ]
       }

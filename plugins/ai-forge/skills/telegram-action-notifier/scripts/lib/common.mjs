@@ -127,6 +127,9 @@ export function resolveSettings(raw = {}, env = process.env) {
     // Codex keeps "action" semantics: only blocking turns are sent.
     notify: claude ? (raw.notify === "action" ? "action" : "all") : "action",
     approvalWaitSec: seconds(raw.approvalWaitSec, MAX_APPROVAL_WAIT_SEC, MAX_APPROVAL_WAIT_SEC),
+    // Codex blocks on its PermissionRequest hook: wait less, then Codex asks itself.
+    // The hook timeout in codex-hooks.json is 960 s.
+    codexApprovalWaitSec: seconds(raw.codexApprovalWaitSec, 900, 900),
     topics: raw.topics !== false,
     chatReplies: raw.chatReplies !== false,
     quietHours: parseQuietHours(raw.quietHours),
