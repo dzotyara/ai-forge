@@ -893,6 +893,12 @@ export function claimWaiter(state, sessionId, pid, now = Date.now()) {
   const gen = (session.waiterGen ?? 0) + 1;
   session.waiterGen = gen;
   session.waiter = { pid, gen, since: now };
+  // A waiter runs inside a live session. After an app restart SessionEnd left
+  // `ended`, and the SessionStart waiter can start before SessionStart clears it.
+  if (session.ended && !session.headless) {
+    session.ended = false;
+    delete session.endedAt;
+  }
   return gen;
 }
 
