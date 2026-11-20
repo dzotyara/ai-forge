@@ -77,10 +77,16 @@ test("AskUserQuestion: keyboard, presses, multi-select and answers", () => {
   assert.match(q.questionsHtml("H", questions), /<b>1\. Цвет<\/b>: Какой цвет\?/);
 });
 
-test("AskUserQuestion: free text answers the first open question", () => {
+test("AskUserQuestion: free text answers the last open question as is, or the whole card", () => {
   const questions = q.questionsFromInput(INPUT);
-  const sel = q.applyText(questions, {}, "Зелёный");
-  assert.deepEqual(q.answersFrom(questions, sel)["Какой цвет?"], "Зелёный");
+  // Several open questions: the text answers all of them, so the card closes at once.
+  const all = q.applyText(questions, {}, "а можно черновик?");
+  assert.equal(q.allAnswered(questions, all), true);
+  for (const value of Object.values(q.answersFrom(questions, all))) assert.equal(value, "Ответил текстом вместо выбора: «а можно черновик?»");
+  // One question left open: the text is its answer.
+  const rest = Object.fromEntries(questions.slice(1).map((_, i) => [i + 1, { picks: ["x"], done: true }]));
+  const one = q.applyText(questions, rest, "Зелёный");
+  assert.deepEqual(q.answersFrom(questions, one)["Какой цвет?"], "Зелёный");
   assert.equal(q.questionsFromInput({ questions: [{ question: "x", options: [] }] }), null);
 });
 
