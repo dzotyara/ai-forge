@@ -414,7 +414,8 @@ test("Boss opened in the app again: no headless resume, the app's waiter gets th
   await reset();
   spawned.length = 0;
   const sid = "boss-live-1";
-  await stoppedBoss(sid, { ended: false });
+  // Open in the app: not ended, and its wait-reply process is alive.
+  await stoppedBoss(sid, { ended: false, waiter: { pid: process.pid, gen: 1 }, waiterGen: 1 });
   const tg = mockTelegram(() => true);
   try {
     await bridge.handleUpdate(await common.loadSettings(), generalMessage(22));
@@ -463,4 +464,20 @@ test("SessionStart context for a revived Boss points to spawn, not app tools", (
   const text = entry.headlessContext({ title: "Босс", revive: { model: "claude-opus-5-5" } });
   assert.match(text, /Boss session, resumed headless/);
   assert.match(text, /spawn/);
+});
+
+test("Boss never reopened after an app restart (not ended, no waiter): woken headless", async () => {
+  await reset();
+  spawned.length = 0;
+  const sid = "boss-asleep-1";
+  await stoppedBoss(sid, { ended: false });
+  const tg = mockTelegram(() => true);
+  try {
+    await bridge.handleUpdate(await common.loadSettings(), generalMessage(31));
+    assert.equal(spawned.length, 1, "the Boss is resumed headless");
+    assert.equal((await bridge.readState()).sessions[sid].ended, true);
+  } finally {
+    tg.restore();
+    await bridge.takeInbox(sid);
+  }
 });

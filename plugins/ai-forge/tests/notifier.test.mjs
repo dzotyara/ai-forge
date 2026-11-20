@@ -144,3 +144,16 @@ test("a waiter started right after an app restart clears the ended flag and deli
   bridgeMod.claimWaiter(headless, "h", process.pid);
   assert.equal(headless.sessions.h.ended, true, "headless workers keep their flag");
 });
+
+test("a session counts as not running only with no waiter, no turn and an idle transcript", async () => {
+  const { isAsleep } = await import("../skills/telegram-action-notifier/scripts/lib/bridge.mjs");
+  const now = Date.now();
+  const dead = () => false, live = () => true;
+  const base = { meta: { turns: {} } };
+  assert.equal(isAsleep(base, "a", { title: "x" }, now, dead, new Set()), true);
+  assert.equal(isAsleep(base, "a", { waiter: { pid: 1, gen: 1 }, waiterGen: 1 }, now, live, new Set()), false, "waiting for a reply");
+  assert.equal(isAsleep({ meta: { turns: { a: now - 1000 } } }, "a", {}, now, dead, new Set()), false, "mid-turn");
+  assert.equal(isAsleep(base, "a", {}, now, dead, new Set(["a/agent-1.jsonl"])), false, "a subagent is writing");
+  assert.equal(isAsleep(base, "a", { ended: true }, now, dead, new Set()), false, "ended is handled elsewhere");
+  assert.equal(isAsleep(base, "a", { headless: true }, now, dead, new Set()), false);
+});
