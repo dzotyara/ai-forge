@@ -59,14 +59,35 @@
   #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: var(--text); color: var(--bg);
     padding: 9px 16px; border-radius: 10px; font-size: 14px; opacity: 0; transition: opacity .2s; pointer-events: none; }
   #toast.show { opacity: 1; }
+  #wizard { border-color: var(--accent); }
+  #wizard ol.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+  #wizard .step { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  #wizard .step.current { border-color: var(--accent); }
+  #wizard .step.done { opacity: .65; }
+  #wizard .step h3 { font-size: 15px; margin: 0 0 6px; display: flex; gap: 8px; align-items: baseline; }
+  #wizard .step .n { font-variant-numeric: tabular-nums; color: var(--muted); font-weight: 500; }
+  #wizard .step.done .n::after { content: " ✓"; color: var(--ok); }
+  #wizard .step p, #wizard .step li { margin: 4px 0; color: var(--muted); }
+  #wizard .step ul { margin: 4px 0; padding-left: 18px; }
+  #wizard .acts { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
+  #wizard .acts input { flex: 1 1 260px; min-width: 0; }
+  #wizard a.btn { display: inline-block; text-decoration: none; border: 1px solid var(--line); background: var(--field); color: var(--text); border-radius: 8px; padding: 7px 14px; }
+  #wizard .choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+  #wizard .choices button { text-align: left; padding: 12px; }
+  #wizard .choices button b { display: block; margin-bottom: 2px; }
   #offline { display: none; background: var(--bad); color: #fff; padding: 10px 14px; border-radius: 10px; margin-bottom: 16px; }
 </style>
 </head>
 <body>
 <main>
   <h1 data-ru="Уведомления">Notifications</h1>
-  <p class="lead"><span data-ru="AI Forge: уведомления из Claude Code и Codex в Telegram и Discord.">AI Forge: notifications from Claude Code and Codex in Telegram and Discord.</span> <span data-ru="Нравится?">Like it?</span> <a href="https://github.com/dzotyara/ai-forge" target="_blank" rel="noopener" data-ru="⭐ Поставьте звезду на GitHub">⭐ Star it on GitHub</a></p>
+  <p class="lead"><span data-ru="AI Forge: уведомления из Claude Code и Codex в Telegram и Discord.">AI Forge: notifications from Claude Code and Codex in Telegram and Discord.</span> <span data-ru="Нравится?">Like it?</span> <a href="https://github.com/dzotyara/ai-forge" target="_blank" rel="noopener" data-ru="⭐ Поставьте звезду на GitHub">⭐ Star it on GitHub</a> · <button id="wizard-open" class="link" type="button" data-ru="Мастер настройки">Setup wizard</button></p>
   <div id="offline"><span data-ru="Панель закрыта или недоступна. Запустите её заново командой">The panel is closed or unreachable. Start it again with</span> <code>node configure.mjs --ui</code>.</div>
+
+  <section id="wizard" aria-labelledby="h-wizard" hidden>
+    <h2 id="h-wizard" data-ru="Первая настройка">First-time setup</h2>
+    <div id="wizard-body"></div>
+  </section>
 
   <section aria-labelledby="h-bot">
     <h2 id="h-bot">Telegram</h2>
@@ -504,7 +525,171 @@ $("test").onclick = () => act(() => api("/api/test", {}), L("Тестовое с
 $("restart").onclick = () => act(() => api("/api/daemon/restart", {}), L("Служба перезапущена", "Service restarted"));
 $("stop").onclick = () => act(() => api("/api/daemon/stop", {}), L("Служба остановлена", "Service stopped"));
 
-refresh().catch(() => {});
+// ---------------------------------------------------------------- setup wizard
+// Step by step from zero to a working bot; the form below stays for fine-tuning.
+const WIZ_KEY = "ai-forge-wizard";
+const wiz = (() => { try { return JSON.parse(localStorage.getItem(WIZ_KEY)) || {}; } catch { return {}; } })();
+const saveWiz = () => { try { localStorage.setItem(WIZ_KEY, JSON.stringify({ target: wiz.target, done: wiz.done, step: wiz.step })); } catch {} };
+const esc = (t) => String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+// Manage Channels, Manage Server, Add Reactions, View Channel, Send Messages, Read Message History.
+const DISCORD_PERMISSIONS = 16 + 32 + 64 + 1024 + 2048 + 65536;
+const discordAppId = (token) => {
+  try { const id = atob(String(token).split(".")[0].replace(/-/g, "+").replace(/_/g, "/")); return /^\d{17,20}$/.test(id) ? id : null; } catch { return null; }
+};
+
+function wizardSteps() {
+  const steps = [];
+  const discord = wiz.target === "discord" || wiz.target === "both";
+  const telegram = wiz.target === "telegram" || wiz.target === "both";
+  if (discord) steps.push("d-app", "d-token", "d-invite", "d-connect");
+  if (telegram) steps.push("t-token", "t-group", "t-owner");
+  steps.push("target", "test");
+  return steps;
+}
+
+function stepView(id) {
+  const link = (href, text) => `<a class="btn" href="${href}" target="_blank" rel="noopener">${text}</a>`;
+  switch (id) {
+    case "d-app": return {
+      title: L("Создайте Discord-приложение", "Create a Discord application"),
+      body: L("Откройте Developer Portal, нажмите <b>New Application</b> и назовите его, например, <b>AI Forge</b>.", "Open the Developer Portal, press <b>New Application</b> and name it, for example <b>AI Forge</b>."),
+      acts: link("https://discord.com/developers/applications", L("Открыть Developer Portal", "Open the Developer Portal")) + `<button class="primary" data-next>${L("Готово", "Done")}</button>`,
+    };
+    case "d-token": return {
+      title: L("Токен бота и Message Content", "Bot token and Message Content"),
+      body: L("<ul><li>Вкладка <b>Bot</b> → <b>Reset Token</b> → скопируйте токен.</li><li>Там же включите <b>Message Content Intent</b> и нажмите <b>Save Changes</b>.</li></ul>Токен остаётся на этом компьютере.", "<ul><li><b>Bot</b> tab → <b>Reset Token</b> → copy the token.</li><li>On the same tab turn on <b>Message Content Intent</b> and press <b>Save Changes</b>.</li></ul>The token stays on this computer."),
+      acts: `<input id="wiz-dtoken" type="password" autocomplete="off" spellcheck="false" placeholder="${L("Вставьте токен бота", "Paste the bot token")}"><button class="primary" data-act="d-token">${L("Дальше", "Next")}</button>`,
+    };
+    case "d-invite": {
+      const id = discordAppId(wiz.discordToken);
+      const url = id ? `https://discord.com/oauth2/authorize?client_id=${id}&scope=bot%20applications.commands&permissions=${DISCORD_PERMISSIONS}` : "";
+      return {
+        title: L("Добавьте бота на сервер", "Add the bot to your server"),
+        body: L("Ссылка уже с нужными правами. Выберите свой сервер (или создайте новый: «+» в Discord) и нажмите <b>Authorize</b>.", "The link already has the right permissions. Pick your server (or create one with “+” in Discord) and press <b>Authorize</b>."),
+        acts: (url ? link(url, L("Добавить бота", "Add the bot")) : `<span class="bad">${L("Не вижу токен, вернитесь на шаг назад", "No token yet, go back one step")}</span>`) + `<button class="primary" data-next>${L("Добавил", "Added")}</button>`,
+      };
+    }
+    case "d-connect": return {
+      title: L("Ваш ID и подключение", "Your ID and connect"),
+      body: L("В Discord: <b>Настройки → Расширенные → Режим разработчика</b>. Потом правый клик по себе → <b>Копировать ID пользователя</b>.", "In Discord: <b>Settings → Advanced → Developer Mode</b>. Then right-click yourself → <b>Copy User ID</b>."),
+      acts: `<input id="wiz-downer" type="text" inputmode="numeric" placeholder="${L("Ваш ID пользователя", "Your user ID")}"><button class="primary" data-act="d-connect">${L("Подключить Discord", "Connect Discord")}</button>`,
+    };
+    case "t-token": return {
+      title: L("Создайте Telegram-бота", "Create a Telegram bot"),
+      body: L("Напишите <b>@BotFather</b> команду <code>/newbot</code>, придумайте имя и скопируйте токен.", "Send <code>/newbot</code> to <b>@BotFather</b>, pick a name and copy the token."),
+      acts: link("https://t.me/BotFather", L("Открыть @BotFather", "Open @BotFather")) + `<input id="wiz-ttoken" type="password" autocomplete="off" spellcheck="false" placeholder="${L("Вставьте токен", "Paste the token")}"><button class="primary" data-act="t-token">${L("Проверить", "Check")}</button>`,
+    };
+    case "t-group": return {
+      title: L("Группа с темами", "A group with topics"),
+      body: L("<ul><li>Создайте группу и включите в настройках <b>Темы</b>.</li><li>Добавьте бота и сделайте его админом с правом <b>Управление темами</b>.</li><li>Напишите в группе любое сообщение и нажмите «Найти группу».</li></ul>", "<ul><li>Create a group and turn on <b>Topics</b> in its settings.</li><li>Add the bot and make it an admin with <b>Manage topics</b>.</li><li>Post any message in the group and press “Find the group”.</li></ul>"),
+      acts: `<button class="primary" data-act="t-group">${L("Найти группу", "Find the group")}</button><span id="wiz-groups" class="acts"></span>`,
+    };
+    case "t-owner": return {
+      title: L("Кто владелец", "Who the owner is"),
+      body: L("Откройте личный чат с ботом, нажмите <b>Start</b> и вернитесь сюда: бот будет слушаться только вас.", "Open a private chat with the bot, press <b>Start</b> and come back: the bot will obey only you."),
+      acts: `<button class="primary" data-act="t-owner">${L("Найти меня", "Find me")}</button>`,
+    };
+    case "target": return {
+      title: L("Куда отправлять", "Where to send"),
+      body: L("Можно поменять в любой момент в разделе «Уведомления».", "You can change it any time under Notifications."),
+      acts: ["discord", "telegram", "both"].map((t) => `<button data-target="${t}">${{ discord: "Discord", telegram: "Telegram", both: L("Telegram и Discord", "Telegram and Discord") }[t]}</button>`).join(""),
+    };
+    case "test": return {
+      title: L("Проверка", "Check it"),
+      body: L("Отправим тестовое сообщение. Потом начните новую сессию Claude Code или выполните <code>/reload-plugins</code> в открытой.", "We send a test message. Then start a new Claude Code session, or run <code>/reload-plugins</code> in an open one."),
+      acts: `<button class="primary" data-act="test">${L("Отправить тест", "Send a test")}</button><button data-act="finish">${L("Закрыть мастер", "Close the wizard")}</button>`,
+    };
+  }
+  return { title: id, body: "", acts: "" };
+}
+
+function renderWizard() {
+  const body = $("wizard-body");
+  if (!wiz.target) {
+    body.innerHTML = `<p class="muted">${L("Пара минут, и вопросы от Claude Code будут приходить вам на телефон с кнопками. Где удобнее?", "A couple of minutes and Claude Code's questions reach your phone with buttons. Where do you want them?")}</p>
+      <div class="choices">
+        <button data-choose="discord"><b>Discord</b><span class="small muted">${L("Канал на сессию, статус «Playing», slash-команды. Рекомендуем.", "A channel per session, a “Playing” status, slash commands. Recommended.")}</span></button>
+        <button data-choose="telegram"><b>Telegram</b><span class="small muted">${L("Тема на сессию в группе, удобно с телефона.", "A topic per session in a group, handy on the phone.")}</span></button>
+        <button data-choose="both"><b>${L("Оба", "Both")}</b><span class="small muted">${L("Запрос приходит в оба места, решение одно.", "A request goes to both; the first answer wins.")}</span></button>
+      </div>`;
+    return;
+  }
+  const steps = wizardSteps();
+  wiz.step = Math.min(wiz.step ?? 0, steps.length - 1);
+  body.innerHTML = `<ol class="steps">${steps.map((id, i) => {
+    const v = stepView(id);
+    const cls = i < wiz.step ? "done" : i === wiz.step ? "current" : "";
+    return `<li class="step ${cls}"><h3><span class="n">${i + 1}/${steps.length}</span>${v.title}</h3>${i === wiz.step ? `<div>${v.body}</div><div class="acts">${v.acts}</div>` : ""}</li>`;
+  }).join("")}</ol>
+  <div class="acts"><button class="link" data-act="back">${L("← Назад", "← Back")}</button><button class="link" data-act="restart">${L("Начать заново", "Start over")}</button></div>`;
+}
+
+const nextStep = () => { wiz.step = (wiz.step ?? 0) + 1; saveWiz(); renderWizard(); };
+
+$("wizard-body").addEventListener("click", async (event) => {
+  const el = event.target.closest("button");
+  if (!el) return;
+  if (el.dataset.choose) { wiz.target = el.dataset.choose; wiz.step = 0; saveWiz(); return renderWizard(); }
+  if (el.hasAttribute("data-next")) return nextStep();
+  if (el.dataset.target) {
+    return act(async () => { await api("/api/settings", { notificationTarget: el.dataset.target }); nextStep(); }, L("Сохранено", "Saved"));
+  }
+  const step = el.dataset.act;
+  if (step === "back") { wiz.step = Math.max(0, (wiz.step ?? 0) - 1); saveWiz(); return renderWizard(); }
+  if (step === "restart") { wiz.target = null; wiz.step = 0; saveWiz(); return renderWizard(); }
+  if (step === "d-token") {
+    const token = $("wiz-dtoken").value.trim();
+    if (!discordAppId(token)) return toast(L("Это не похоже на токен Discord-бота", "This does not look like a Discord bot token"));
+    wiz.discordToken = token; // kept in memory only, never in localStorage
+    return nextStep();
+  }
+  if (step === "d-connect") {
+    const owner = $("wiz-downer").value.trim();
+    if (!/^\d{17,20}$/.test(owner)) return toast(L("ID — это число из 17–20 цифр", "The ID is a number of 17–20 digits"));
+    return act(async () => {
+      const r = await api("/api/discord", { token: wiz.discordToken, guild: "", owner });
+      delete wiz.discordToken;
+      if (r.warnings?.length) toast(r.warnings.join(" "));
+      nextStep();
+    }, L("Discord подключён", "Discord connected"));
+  }
+  if (step === "t-token") {
+    return act(async () => {
+      const r = await api("/api/token", { token: $("wiz-ttoken").value.trim() });
+      toast((r.username ? "@" + r.username + " · " : "") + L("токен принят", "token accepted"));
+      nextStep();
+    });
+  }
+  if (step === "t-group") {
+    return act(async () => {
+      const r = await api("/api/chat/groups", {});
+      const box = $("wiz-groups");
+      if (!r.groups.length) return toast(L("Групп не нашлось. Напишите что-нибудь в группе и нажмите ещё раз", "No groups found. Post something in the group and press again"));
+      box.innerHTML = r.groups.map((g) => `<button data-group="${esc(g.id)}">${esc(g.label || g.id)}</button>`).join("");
+    });
+  }
+  if (el.dataset.group) {
+    return act(async () => { await api("/api/chat", { chatId: el.dataset.group }); nextStep(); }, L("Группа сохранена", "Group saved"));
+  }
+  if (step === "t-owner") {
+    return act(async () => {
+      const r = await api("/api/chat/detect", {});
+      if (!r.saved) return toast(L("Не вижу /start. Нажмите Start в личном чате с ботом и попробуйте ещё раз", "No /start yet. Press Start in a private chat with the bot and try again"));
+      nextStep();
+    }, null);
+  }
+  if (step === "test") return act(() => api("/api/test", {}), L("Тестовое сообщение отправлено", "Test message sent"));
+  if (step === "finish") { wiz.done = true; saveWiz(); $("wizard").hidden = true; toast(L("Готово! ⭐ Звезда на GitHub очень поможет", "All set! ⭐ A star on GitHub helps a lot")); }
+});
+
+$("wizard-open").onclick = () => { $("wizard").hidden = false; renderWizard(); $("wizard").scrollIntoView({ behavior: "smooth" }); };
+
+function maybeShowWizard(s) {
+  const configured = (s.bot && s.bot.ok) || (s.discord && s.discord.configured);
+  if (!configured && !wiz.done && $("wizard").hidden) { $("wizard").hidden = false; renderWizard(); }
+}
+
+refresh().then(() => { if (state) maybeShowWizard(state); }).catch(() => {});
 setInterval(() => { if (!document.hidden) refresh({ poll: true, keepForm: true }).catch(() => {}); }, 15000);
 </script>
 </body>

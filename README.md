@@ -128,6 +128,8 @@ node "$(ls -d ~/.claude/plugins/cache/ai-forge/ai-forge/*/ | tail -1)configure.m
 
 The panel is local: it listens on `127.0.0.1` with a random key, never shows full tokens and never sends them anywhere. Pick **English** or **Русский** there.
 
+On a fresh install the **setup wizard** opens on top of the panel and walks you through Discord or Telegram step by step. The full walkthrough with troubleshooting is in the **[setup guide](docs/SETUP.md)**.
+
 Start a new session afterwards, or run `/reload-plugins` in an open one.
 
 ### Discord
