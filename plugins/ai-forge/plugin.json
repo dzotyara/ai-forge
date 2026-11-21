@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "ai-forge",
-  "version": "1.22.0",
+  "version": "1.22.1",
   "description": "AI Forge: Discord and Telegram bridge for Codex and Claude Code: approval and action alerts, a channel per session, smart delivery, and replies from your phone in Claude Code.",
   "author": {
     "name": "dzotyara"

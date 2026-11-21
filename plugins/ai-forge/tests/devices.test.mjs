@@ -19,7 +19,11 @@ test("Codex sessions written in the last 90 s count, older ones don't", async ()
   writeFileSync(path.join(dir, "rollout-a.jsonl"), "{}");
   writeFileSync(path.join(dir, "rollout-b.jsonl"), "{}");
   utimesSync(path.join(dir, "rollout-b.jsonl"), new Date(Date.now() - 600_000), new Date(Date.now() - 600_000));
-  assert.equal(await codexWorking(Date.now(), root), 1);
+  const oldDay = path.join(root, "2024", "01", "01");
+  mkdirSync(oldDay, { recursive: true });
+  writeFileSync(path.join(oldDay, "rollout-resumed.jsonl"), "{}");
+  writeFileSync(path.join(oldDay, "unrelated.jsonl"), "{}");
+  assert.equal(await codexWorking(Date.now(), root), 2);
 });
 
 test("a device line round-trips and totals add fresh devices", () => {

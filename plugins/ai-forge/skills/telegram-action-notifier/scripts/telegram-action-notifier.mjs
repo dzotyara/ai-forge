@@ -727,8 +727,9 @@ export async function handleEvent(event) {
   }
   if (!settings.token || !settings.chatId) return;
   if (event.hook_event_name === "Stop") await onStop(event, settings);
-  else if (event.hook_event_name === "PermissionRequest") await onPermissionRequest(event, settings);
-  else if (event.hook_event_name === "PermissionDenied") await onPermissionDenied(event, settings);
+  else if (event.hook_event_name === "PermissionRequest" && (isClaudeCode() || settings.codexApprovalNotifications)) {
+    await onPermissionRequest(event, settings);
+  } else if (event.hook_event_name === "PermissionDenied") await onPermissionDenied(event, settings);
 }
 
 export async function run(argv = process.argv.slice(2)) {
