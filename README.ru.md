@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/banner.png" alt="AI Forge" width="100%">
+  <img src="docs/banner.gif" alt="AI Forge" width="100%">
 </p>
 
 <h1 align="center">Ваши ИИ-агенты больше не ждут вас</h1>
@@ -150,7 +150,7 @@ node "$(ls -d ~/.claude/plugins/cache/ai-forge/ai-forge/*/ | tail -1)configure.m
 
 Бот создаст категорию `AI Forge` и канал `🔥・general`, а каналы сессий будет создавать сам. Каналы видят только вы и бот (плюс владельцы сервера через права Discord). Команды и кнопки бот принимает только от вас.
 
-AI Forge может поставить фирменные изображения, если у бота ещё нет аватара или у сервера нет иконки. Ранее выбранные изображения сохраняются. Уведомления сервера по умолчанию переключатся на «Только @упоминания». [Обложка для Discord и Telegram](docs/discord-telegram-cover.png)
+AI Forge может поставить фирменные изображения, если у бота ещё нет аватара или у сервера нет иконки. Ранее выбранные изображения сохраняются. Уведомления сервера по умолчанию переключатся на «Только @упоминания». [Обложка бота PNG](docs/discord-telegram-cover.png) · [Видео для описания в Telegram](docs/telegram-description.mp4) · [Иллюстрация Rich Presence](docs/rich-presence.gif)
 
 ### Telegram
 

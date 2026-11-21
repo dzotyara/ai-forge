@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/banner.png" alt="AI Forge" width="100%">
+  <img src="docs/banner.gif" alt="AI Forge" width="100%">
 </p>
 
 <h1 align="center">Your AI agents never wait for you again</h1>
@@ -146,7 +146,7 @@ Connect Discord or Telegram in the wizard and press **Test message** to check de
 
 The bot creates an `AI Forge` category with a `🔥・general` channel and makes a channel for each session on its own. Only you and the bot see them (server owners keep access through Discord permissions). The bot takes commands and button presses from you only.
 
-If the bot has no avatar or the server has no icon, AI Forge can set its default artwork. Existing pictures are preserved. It also switches the server's default notifications to "Only @mentions". [Optional Discord and Telegram cover](docs/discord-telegram-cover.png)
+If the bot has no avatar or the server has no icon, AI Forge can set its default artwork. Existing pictures are preserved. It also switches the server's default notifications to "Only @mentions". [Bot cover PNG](docs/discord-telegram-cover.png) · [Telegram description video](docs/telegram-description.mp4) · [Rich Presence artwork](docs/rich-presence.gif)
 
 ### Telegram
 

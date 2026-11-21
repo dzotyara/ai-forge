@@ -129,12 +129,13 @@ export function connectRichPresence(clientId, { paths = ipcPaths(), retryMs = 15
 }
 
 export const REPO_URL = "https://github.com/dzotyara/ai-forge";
+const RICH_PRESENCE_ART = "https://raw.githubusercontent.com/dzotyara/ai-forge/main/docs/rich-presence.gif";
 
 /**
  * The activity for the owner's profile: working sessions, how long the forge runs,
  * and a button to the repository (Discord shows buttons to other people, not to you).
  */
-export function richPresenceActivity({ working, startedAt, imageUrl, hosts = "Claude Code" }) {
+export function richPresenceActivity({ working, startedAt, imageUrl = RICH_PRESENCE_ART, hosts = "Claude Code" }) {
   return {
     details: working ? L(`Агентов в работе: ${working}`, `Agents working: ${working}`) : L("Ждёт задач", "Waiting for tasks"),
     state: hosts,

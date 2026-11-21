@@ -21,7 +21,7 @@ import {
   redactSecrets,
   telegram,
 } from "./common.mjs";
-import { REMOTE_LINE, botUser, connectDiscord, discordApi, remoteDecision, slashCommands } from "./discord.mjs";
+import { REMOTE_LINE, connectDiscord, discordApi, remoteDecision, slashCommands } from "./discord.mjs";
 import { connectRichPresence, richPresenceActivity } from "./rpc.mjs";
 import { codexWorking, fleetTotals, otherDevices, reportDevice } from "./devices.mjs";
 import { escapeHtml, htmlToPlain, projectName, truncateText } from "./format.mjs";
@@ -2018,7 +2018,6 @@ export async function runDaemon({ idleMs = DAEMON_IDLE_MS, tickMs = 5000, presen
   let fleetAt = 0;
   let fleet = { extra: 0, hosts: "Claude Code" };
   let richPresence = null;
-  let richPresenceImage = "";
   const release = async () => {
     if ((await readDaemonPid()) === process.pid) await fsp.rm(files.pid(), { force: true });
   };
@@ -2062,12 +2061,10 @@ export async function runDaemon({ idleMs = DAEMON_IDLE_MS, tickMs = 5000, presen
         await registerSlashCommands(discord, applicationId).catch(report);
         // The owner's own profile: "Playing <application name>" through the local Discord app.
         if (settings.discordRichPresence && applicationId && !richPresence) {
-          const me = await botUser(discord.token).catch(() => null);
-          if (me?.avatar) richPresenceImage = `https://cdn.discordapp.com/avatars/${me.id}/${me.avatar}.png?size=512`;
           richPresence = connectRichPresence(applicationId, {
             onState: (stateText) => { void logLine(`Discord Rich Presence: ${stateText}`); },
           });
-          richPresence.set(richPresenceActivity({ working: workingSessions(await readState()), startedAt, imageUrl: richPresenceImage }));
+          richPresence.set(richPresenceActivity({ working: workingSessions(await readState()), startedAt }));
         }
       },
     });
@@ -2105,7 +2102,7 @@ export async function runDaemon({ idleMs = DAEMON_IDLE_MS, tickMs = 5000, presen
           }
         }
         discordLink?.setActivity(discordActivity(settings, now, Date.now(), fleet.extra));
-        richPresence?.set(richPresenceActivity({ working: workingSessions(now) + fleet.extra, hosts: fleet.hosts, startedAt, imageUrl: richPresenceImage }));
+        richPresence?.set(richPresenceActivity({ working: workingSessions(now) + fleet.extra, hosts: fleet.hosts, startedAt }));
         if (!telegramEnabled) await writeJsonAtomic(files.daemon(), { pid: process.pid, startedAt, lastPollAt: Date.now() });
         if (await hasLiveClients()) lastLive = Date.now();
         else if (Date.now() - lastLive > idleMs) return exit();

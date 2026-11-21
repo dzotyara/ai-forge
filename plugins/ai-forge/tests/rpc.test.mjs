@@ -1,5 +1,6 @@
 import "./lang-ru.mjs";
 import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
 import { mkdtempSync } from "node:fs";
 import net from "node:net";
 import os from "node:os";
@@ -15,12 +16,14 @@ test("frames round-trip and split across chunks", () => {
   const [second, empty] = decodeFrames(Buffer.concat([rest, both.subarray(20)]));
   assert.deepEqual(second, [{ op: 3, data: { b: "я" } }]);
   assert.equal(empty.length, 0);
-  assert.ok(ipcPaths({ TMPDIR: "/t" }, "darwin").includes("/t/discord-ipc-0"));
+  assert.ok(ipcPaths({ TMPDIR: "/t" }, "darwin").includes(path.join("/t", "discord-ipc-0")));
 });
 
 test("Rich Presence: handshake, activity after READY, pong, clears on close, waits for Discord", async () => {
   const dir = mkdtempSync(path.join(os.tmpdir(), "rpc-"));
-  const file = path.join(dir, "discord-ipc-0");
+  const file = process.platform === "win32"
+    ? `\\\\.\\pipe\\ai-forge-rpc-test-${randomUUID()}`
+    : path.join(dir, "discord-ipc-0");
   const seen = [];
   let client;
   const server = net.createServer((socket) => {
@@ -42,8 +45,8 @@ test("Rich Presence: handshake, activity after READY, pong, clears on close, wai
   presence.set(richPresenceActivity({ working: 2, startedAt: 1_000_000 }));
   await new Promise((resolve) => setTimeout(resolve, 60)); // Discord is not running yet
   assert.equal(seen.length, 0);
-  await new Promise((resolve) => server.listen(file, resolve));
   try {
+    await new Promise((resolve, reject) => server.once("error", reject).listen(file, resolve));
     const until = Date.now() + 2000;
     while (seen.filter((f) => f.op === 1).length < 1 && Date.now() < until) await new Promise((r) => setTimeout(r, 10));
     assert.deepEqual(seen[0], { op: 0, data: { v: 1, client_id: "123456789012345678" } });
@@ -51,6 +54,7 @@ test("Rich Presence: handshake, activity after READY, pong, clears on close, wai
     assert.equal(activity.cmd, "SET_ACTIVITY");
     assert.equal(activity.args.pid, process.pid);
     assert.deepEqual(activity.args.activity, { details: "Агентов в работе: 2", state: "Claude Code", timestamps: { start: 1000 },
+      assets: { large_image: "https://raw.githubusercontent.com/dzotyara/ai-forge/main/docs/rich-presence.gif", large_text: "AI Forge · github.com/dzotyara/ai-forge" },
       buttons: [{ label: "⭐ AI Forge на GitHub", url: "https://github.com/dzotyara/ai-forge" }] });
     assert.ok(seen.some((f) => f.op === 4), "pong");
     presence.set(richPresenceActivity({ working: 2, startedAt: 1_000_000 }));
