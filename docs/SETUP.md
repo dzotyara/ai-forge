@@ -33,7 +33,7 @@ A local page opens on `127.0.0.1` with a one-time key in the link. On a fresh in
 3. **Turn on Message Content.** On the same tab turn on **Message Content Intent** and press **Save Changes**. Without it the bot sees buttons and slash commands, but not your text replies.
 4. **Add the bot to your server.** Paste the token into the wizard: it builds an invite link with the right permissions (Manage Channels, Manage Server, View Channel, Send Messages, Read Message History, Add Reactions). Open it, pick your server and press **Authorize**. No server yet? Press **+** in Discord and create one, just for you.
 5. **Copy your user ID.** In Discord open **Settings → Advanced** and turn on **Developer Mode**. Then right-click yourself and choose **Copy User ID**.
-6. **Connect.** Paste the ID and press **Connect Discord**. The bot creates an `AI Forge` category with a `🔥・general` channel. It sets its avatar and the server icon if they are empty, and switches the server to "Only @mentions" notifications.
+6. **Connect.** Paste the ID and press **Connect Discord**. The bot creates an `AI Forge` category with a `⚒・forge` channel. It sets its avatar and the server icon if they are empty, and switches the server to "Only @mentions" notifications.
 
 ## 3b. Telegram
 
@@ -54,7 +54,7 @@ Start a new Claude Code session, or run `/reload-plugins` in one that is already
 
 - **Language:** **Notifications → Language** switches the bot and the panel between English and Russian.
 - **Quiet hours:** **Notifications → Quiet hours**, for example 23:00–08:00.
-- **The Boss:** name any Claude Code session "Boss" and it takes `🔥・general`. If there is none, the first message there creates one.
+- **The Boss:** name any Claude Code session "Boss" and it takes `⚒・forge`. If there is none, the first message there creates one.
 - **Codex:** install the plugin in Codex too. Its permission requests come to Discord with Allow / Deny.
 
 ```bash
@@ -71,6 +71,7 @@ codex plugin add ai-forge@ai-forge
 |---|---|
 | "Discord Gateway: 4014" or "Message Content Intent is off" in the panel | Turn on **Message Content Intent** in the Developer Portal → Bot, press **Save Changes**, then **Connect Discord** again |
 | The bot didn't create channels | It needs **Manage Channels** on your server: open the invite link from the wizard again |
+| The bot or the server still shows an old picture | Press **Refresh look** in the panel's **Service** section: it puts the current AI Forge artwork on the bot, the server and the Telegram group |
 | No server icon | Give the bot **Manage Server**, or set the icon yourself |
 | Telegram "No groups found" | Post a new message in the group after adding the bot, then press **Find the group** again |
 | "The session is working" in the chat | The session is in the middle of a turn: it sees your message at its next step (next tool call) |

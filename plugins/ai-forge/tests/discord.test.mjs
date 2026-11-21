@@ -1,7 +1,7 @@
 import "./lang-ru.mjs";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { connectDiscord, discordCall, discordUpdate, setupDiscord, slashCommands } from "../skills/telegram-action-notifier/scripts/lib/discord.mjs";
+import { connectDiscord, discordCall, discordUpdate, refreshDiscordLook, setupDiscord, slashCommands } from "../skills/telegram-action-notifier/scripts/lib/discord.mjs";
 import { discordSettings, resolveSettings } from "../skills/telegram-action-notifier/scripts/lib/common.mjs";
 import { discordActivity, routeUpdate } from "../skills/telegram-action-notifier/scripts/lib/bridge.mjs";
 
@@ -53,7 +53,7 @@ test("setup discovers the only server, creates private channels and reuses them 
   assert.deepEqual(await discordCall(routed.token, "createForumTopic", { name: "Код · Проект" }),
     { message_thread_id: thread });
   assert.deepEqual(created.map(({ name, type, parent_id }) => [name, type, parent_id]),
-    [["AI Forge", 4, undefined], ["🔥・general", 0, category], ["🤖・код-проект", 0, category]]);
+    [["AI Forge", 4, undefined], ["⚒・forge", 0, category], ["🤖・код-проект", 0, category]]);
   assert.match(created[1].topic, /Босс/);
   for (const channel of created) {
     assert.deepEqual(channel.permission_overwrites.map(({ id, type }) => [id, type]),
@@ -145,7 +145,7 @@ test("setup renames channels from an older setup instead of making new ones", as
   assert.equal(settings.discordCategory, old[0].id);
   assert.equal(settings.discordChannel, old[1].id);
   assert.deepEqual(patched.map(([route, body]) => [route, body.name]),
-    [[`/channels/${old[0].id}`, "AI Forge"], [`/channels/${old[1].id}`, "🔥・general"]]);
+    [[`/channels/${old[0].id}`, "AI Forge"], [`/channels/${old[1].id}`, "⚒・forge"]]);
 });
 
 test("repeated button data still reaches Discord and comes back unchanged", async (t) => {
@@ -328,4 +328,42 @@ test("an action answered in the app is kept for the daemon to unping", async () 
   } };
   assert.equal(resolvePendingIn(state, "s", { kinds: ["action"], edit: false }), 1);
   assert.deepEqual([state.pending.a.resolved, state.pending.a.keepText, state.pending.b], [true, true, undefined]);
+});
+
+test("refresh look replaces the bot avatar, banner and server icon and renames the old main channel", async (t) => {
+  const guild = "123456789012345675";
+  const calls = [];
+  t.mock.method(globalThis, "fetch", async (url, options) => {
+    const route = new URL(url).pathname.replace("/api/v10", "");
+    const body = options.body ? JSON.parse(options.body) : null;
+    if (options.method === "PATCH") { calls.push([route, Object.keys(body).sort()]); return Response.json({ ...body, id: "1" }); }
+    if (route === "/users/@me") return Response.json({ id: "123456789012345677", avatar: "old" });
+    if (route === "/applications/@me") return Response.json({ id: "123456789012345677", flags: 1 << 19 });
+    if (route === `/guilds/${guild}`) return Response.json({ id: guild, icon: "old", default_message_notifications: 1 });
+    if (route === `/channels/${bot.channel}`) return Response.json({ id: bot.channel, name: "🔥・general" });
+    throw new Error(`unexpected ${options.method} ${route}`);
+  });
+  const warnings = await refreshDiscordLook({ ...bot, guild });
+  assert.deepEqual(warnings, []);
+  assert.deepEqual(calls, [
+    ["/users/@me", ["avatar", "banner"]],
+    [`/guilds/${guild}`, ["icon"]],
+    [`/channels/${bot.channel}`, ["name"]],
+  ]);
+});
+
+test("refresh look leaves a main channel the owner renamed on their own", async (t) => {
+  const guild = "123456789012345675";
+  const renamed = [];
+  t.mock.method(globalThis, "fetch", async (url, options) => {
+    const route = new URL(url).pathname.replace("/api/v10", "");
+    if (options.method === "PATCH") { if (route.startsWith("/channels/")) renamed.push(route); return Response.json({ id: "1" }); }
+    if (route === "/users/@me") return Response.json({ id: "123456789012345677", avatar: "old" });
+    if (route === "/applications/@me") return Response.json({ id: "123456789012345677", flags: 1 << 19 });
+    if (route === `/guilds/${guild}`) return Response.json({ id: guild, icon: "old", default_message_notifications: 1 });
+    if (route === `/channels/${bot.channel}`) return Response.json({ id: bot.channel, name: "my-own-name" });
+    throw new Error(`unexpected ${options.method} ${route}`);
+  });
+  await refreshDiscordLook({ ...bot, guild });
+  assert.deepEqual(renamed, []);
 });

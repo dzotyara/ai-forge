@@ -133,7 +133,7 @@ Everything runs on your machine: a small background service and the plugin's hoo
 | A text reply wakes the session | ✅ | ✅ |
 | Allow once what auto mode blocked | ✅ | ✅ |
 | Confirm outward actions (deploy, send, merge) with a real permission prompt | ✅ | ✅ |
-| A Boss in the main channel, always on, background sessions on demand | ✅ `🔥・general` | ✅ General |
+| A Boss in the main channel, always on, background sessions on demand | ✅ `⚒・forge` | ✅ General |
 | Codex approvals, across devices | ✅ | notifications |
 | Quiet by default, a ping only when you're needed | ✅ | ✅ |
 | `/status` `/away` `/here` `/mute` | ✅ slash commands | ✅ |
@@ -171,7 +171,7 @@ Connect Discord or Telegram in the wizard and press **Test message** to check de
 3. In the panel, **Discord** section: the bot token and your user ID (right-click yourself → Copy User ID; needs Developer Mode). The server ID is only needed if the bot is on several servers. Press **Connect Discord**.
 4. In **Notifications → Where to send**, pick **Discord** or **Telegram and Discord**, save, and press **Test message**.
 
-The bot creates an `AI Forge` category with a `🔥・general` channel and makes a channel for each session on its own. Only you and the bot see them (server owners keep access through Discord permissions). The bot takes commands and button presses from you only.
+The bot creates an `AI Forge` category with a `⚒・forge` channel and makes a channel for each session on its own. Only you and the bot see them (server owners keep access through Discord permissions). The bot takes commands and button presses from you only.
 
 If the bot has no avatar or the server has no icon, AI Forge can set its default artwork. Existing pictures are preserved. It also switches the server's default notifications to "Only @mentions". [Bot cover PNG](docs/discord-telegram-cover.png) · [Telegram description video](docs/telegram-description.mp4) · [Rich Presence artwork](docs/rich-presence.gif)
 
@@ -193,7 +193,7 @@ A private chat with the bot works too: turn on Threaded Mode for the bot in @Bot
 
 **Confirm actions from your phone.** A reply from the chat is not consent for an action that touches other people, for example sending a message, deploying or merging: Claude Code marks chat replies as not user input. So the session doesn't ask in the chat. It arms `confirm-next` and makes the exact call; Claude Code then asks for permission, and you get that call with **Allow** / **Deny** and a "Confirm: …" line. Allow approves only that call.
 
-**The Boss.** Name any session "Boss" and it takes the main channel (`🔥・general`, or General in Telegram). Drop a task there; the Boss splits it across project sessions and starts background ones (`claude -p`) after you press **▶️ Start**. There is always a Boss: if the app closed it, a message in the main channel wakes it up in the background; if there is no Boss at all (deleted, or its conversation is gone), the bridge starts a new one in the background with the boss start prompt (in `bossCwd`, default your home folder) and hands it your message.
+**The Boss.** Name any session "Boss" and it takes the main channel (`⚒・forge`, or General in Telegram). Drop a task there; the Boss splits it across project sessions and starts background ones (`claude -p`) after you press **▶️ Start**. There is always a Boss: if the app closed it, a message in the main channel wakes it up in the background; if there is no Boss at all (deleted, or its conversation is gone), the bridge starts a new one in the background with the boss start prompt (in `bossCwd`, default your home folder) and hands it your message.
 
 **Commands** (yours only):
 
