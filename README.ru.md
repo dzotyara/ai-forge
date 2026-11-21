@@ -12,7 +12,7 @@
 <p align="center">
   <a href="#install-30"><img src="https://img.shields.io/badge/Easy%20Setup-Install-F97316?style=for-the-badge&amp;labelColor=0B0E14" alt="Быстрый старт"></a>
   <a href="#demo"><img src="https://img.shields.io/badge/%D0%9F%D0%BE%D1%81%D0%BC%D0%BE%D1%82%D1%80%D0%B5%D1%82%D1%8C-%D0%B2%20%D0%B4%D0%B5%D0%BB%D0%B5-5865F2?style=for-the-badge" alt="Посмотреть в деле"></a>
-  <a href="https://github.com/dzotyara/ai-forge/stargazers"><img src="https://img.shields.io/github/stars/dzotyara/ai-forge?style=for-the-badge&color=fbbf24&label=%E2%AD%90%20Stars" alt="Stars"></a>
+  <a href="https://github.com/dzotyara/ai-forge"><img src="https://img.shields.io/github/stars/dzotyara/ai-forge?style=for-the-badge&color=fbbf24&label=%E2%AD%90%20Stars" alt="Stars"></a>
   <a href="https://boosty.to/dzotyara"><img src="https://img.shields.io/badge/Boosty-support-f15f2c?style=for-the-badge&logo=boosty&logoColor=white" alt="Поддержать на Boosty"></a>
 </p>
 
@@ -25,7 +25,7 @@
 </p>
 
 <p align="center">
-  ⭐ <b>Если AI Forge экономит вам время, <a href="https://github.com/dzotyara/ai-forge/stargazers">поставьте звезду</a>.</b> Так проект проще найти другим.
+  ⭐ <b>Если AI Forge экономит вам время, <a href="https://github.com/dzotyara/ai-forge">поставьте звезду</a>.</b> Так проект проще найти другим.
 </p>
 
 <p align="center">
@@ -162,7 +162,7 @@ AI Forge может поставить фирменные изображения
 
 ## Как пользоваться
 
-**Ответить сессии.** Напишите в её канал. Бот поставит 👀, сессия проснётся и получит ваш текст. Реплай на конкретное сообщение тоже работает. Сессия ждёт ответа до 12 часов после последнего хода.
+**Ответить сессии.** Напишите в её канал. Бот поставит 👀, сессия проснётся и получит ваш текст. Реплай на конкретное сообщение тоже работает. Сессия ждёт ответа до 12 часов после последнего хода. Если она занята длинным ходом, то увидит сообщение на следующем шаге.
 
 **Разрешения.** Кнопки приходят на любой запрос разрешения. Диалог в приложении работает параллельно: кто ответил первым, тот и решил, второе сообщение помечается «Решено в приложении».
 
