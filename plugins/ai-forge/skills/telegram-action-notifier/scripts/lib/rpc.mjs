@@ -9,6 +9,7 @@ import os from "node:os";
 import path from "node:path";
 import process from "node:process";
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 
 import { L } from "./i18n.mjs";
 
@@ -129,7 +130,16 @@ export function connectRichPresence(clientId, { paths = ipcPaths(), retryMs = 15
 }
 
 export const REPO_URL = "https://github.com/dzotyara/ai-forge";
-const RICH_PRESENCE_ART = "https://raw.githubusercontent.com/dzotyara/ai-forge/main/docs/rich-presence.gif";
+// Discord caches profile art by URL: the plugin version in the query brings the
+// new picture to everyone after an update.
+const PLUGIN_VERSION = (() => {
+  try {
+    return JSON.parse(readFileSync(new URL("../../../../plugin.json", import.meta.url), "utf8")).version ?? "";
+  } catch {
+    return "";
+  }
+})();
+export const RICH_PRESENCE_ART = `https://raw.githubusercontent.com/dzotyara/ai-forge/main/docs/rich-presence.gif${PLUGIN_VERSION ? `?v=${PLUGIN_VERSION}` : ""}`;
 
 /**
  * The activity for the owner's profile: working sessions, how long the forge runs,

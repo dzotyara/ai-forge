@@ -7,7 +7,7 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 
-import { connectRichPresence, decodeFrames, encodeFrame, ipcPaths, richPresenceActivity } from "../skills/telegram-action-notifier/scripts/lib/rpc.mjs";
+import { RICH_PRESENCE_ART, connectRichPresence, decodeFrames, encodeFrame, ipcPaths, richPresenceActivity } from "../skills/telegram-action-notifier/scripts/lib/rpc.mjs";
 
 test("frames round-trip and split across chunks", () => {
   const both = Buffer.concat([encodeFrame(1, { a: 1 }), encodeFrame(3, { b: "я" })]);
@@ -54,7 +54,7 @@ test("Rich Presence: handshake, activity after READY, pong, clears on close, wai
     assert.equal(activity.cmd, "SET_ACTIVITY");
     assert.equal(activity.args.pid, process.pid);
     assert.deepEqual(activity.args.activity, { details: "Агентов в работе: 2", state: "Claude Code", timestamps: { start: 1000 },
-      assets: { large_image: "https://raw.githubusercontent.com/dzotyara/ai-forge/main/docs/rich-presence.gif", large_text: "AI Forge · github.com/dzotyara/ai-forge" },
+      assets: { large_image: RICH_PRESENCE_ART, large_text: "AI Forge · github.com/dzotyara/ai-forge" },
       buttons: [{ label: "⭐ AI Forge на GitHub", url: "https://github.com/dzotyara/ai-forge" }] });
     assert.ok(seen.some((f) => f.op === 4), "pong");
     presence.set(richPresenceActivity({ working: 2, startedAt: 1_000_000 }));
@@ -67,4 +67,8 @@ test("Rich Presence: handshake, activity after READY, pong, clears on close, wai
     client?.destroy();
     server.close();
   }
+});
+
+test("Rich Presence art URL carries the plugin version, so Discord refreshes it after an update", () => {
+  assert.match(RICH_PRESENCE_ART, /^https:\/\/raw\.githubusercontent\.com\/dzotyara\/ai-forge\/main\/docs\/rich-presence\.gif\?v=\d+\.\d+\.\d+$/);
 });
