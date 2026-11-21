@@ -12,7 +12,7 @@
 <p align="center">
   <a href="#install-in-30-seconds"><img src="https://img.shields.io/badge/Easy%20Setup-Install-F97316?style=for-the-badge&amp;labelColor=0B0E14" alt="Easy Setup"></a>
   <a href="#see-it-in-action"><img src="https://img.shields.io/badge/See%20it-in%20action-5865F2?style=for-the-badge" alt="See it in action"></a>
-  <a href="https://github.com/dzotyara/ai-forge/stargazers"><img src="https://img.shields.io/github/stars/dzotyara/ai-forge?style=for-the-badge&color=fbbf24&label=%E2%AD%90%20Stars" alt="Stars"></a>
+  <a href="https://github.com/dzotyara/ai-forge"><img src="https://img.shields.io/github/stars/dzotyara/ai-forge?style=for-the-badge&color=fbbf24&label=%E2%AD%90%20Stars" alt="Stars"></a>
   <a href="https://boosty.to/dzotyara"><img src="https://img.shields.io/badge/Boosty-support-f15f2c?style=for-the-badge&logo=boosty&logoColor=white" alt="Support on Boosty"></a>
 </p>
 
@@ -25,7 +25,7 @@
 </p>
 
 <p align="center">
-  ⭐ <b>If AI Forge saves you time, <a href="https://github.com/dzotyara/ai-forge/stargazers">star the repo</a>.</b> It helps other people find it.
+  ⭐ <b>If AI Forge saves you time, <a href="https://github.com/dzotyara/ai-forge">star the repo</a>.</b> It helps other people find it.
 </p>
 
 <p align="center">
@@ -158,7 +158,7 @@ A private chat with the bot works too: turn on Threaded Mode for the bot in @Bot
 
 ## How to use it
 
-**Reply to a session.** Write in its channel. The bot reacts with 👀, the session wakes up and gets your text. Replying to a specific message works too. A session listens for 12 hours after its last turn.
+**Reply to a session.** Write in its channel. The bot reacts with 👀, the session wakes up and gets your text. Replying to a specific message works too. A session listens for 12 hours after its last turn. If it is busy with a long turn, it sees your message at its next step.
 
 **Permissions.** Every permission request comes with buttons. The prompt in the app works at the same time: whichever answers first wins, and the other message is marked "Decided in the app".
 
