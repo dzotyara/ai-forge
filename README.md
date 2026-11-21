@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/banner.gif" alt="AI Forge" width="100%">
+  <img src="docs/banner.png" alt="AI Forge" width="100%">
 </p>
 
 <h1 align="center">Your AI agents never wait for you again</h1>
@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="#install-in-30-seconds"><img src="https://img.shields.io/badge/Easy%20Setup-Install-F97316?style=for-the-badge&amp;labelColor=0B0E14" alt="Easy Setup"></a>
+  <a href="#install-in-30-seconds"><img src="https://img.shields.io/badge/Easy%20Setup-Install-22C55E?style=for-the-badge&amp;labelColor=0B0E14" alt="Easy Setup"></a>
   <a href="#see-it-in-action"><img src="https://img.shields.io/badge/See%20it-in%20action-5865F2?style=for-the-badge" alt="See it in action"></a>
   <a href="https://github.com/dzotyara/ai-forge"><img src="https://img.shields.io/github/stars/dzotyara/ai-forge?style=for-the-badge&color=fbbf24&label=%E2%AD%90%20Stars" alt="Stars"></a>
   <a href="https://boosty.to/dzotyara"><img src="https://img.shields.io/badge/Boosty-support-f15f2c?style=for-the-badge&logo=boosty&logoColor=white" alt="Support on Boosty"></a>
@@ -18,10 +18,10 @@
 
 <p align="center">
   <a href="https://github.com/dzotyara/ai-forge/actions/workflows/test.yml"><img src="https://github.com/dzotyara/ai-forge/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
-  <img src="https://img.shields.io/badge/Claude%20Code-plugin-F97316?style=flat-square&amp;labelColor=0B0E14" alt="Claude Code plugin">
-  <img src="https://img.shields.io/badge/Codex-0.166%2B-F97316?style=flat-square&amp;labelColor=0B0E14" alt="Codex 0.166+">
-  <img src="https://img.shields.io/badge/Node-%E2%89%A522-F97316?style=flat-square&amp;labelColor=0B0E14" alt="Node 22+">
-  <img src="https://img.shields.io/badge/Runtime-local-F97316?style=flat-square&amp;labelColor=0B0E14" alt="Local runtime">
+  <img src="https://img.shields.io/badge/Claude%20Code-plugin-22C55E?style=flat-square&amp;labelColor=0B0E14" alt="Claude Code plugin">
+  <img src="https://img.shields.io/badge/Codex-0.166%2B-22C55E?style=flat-square&amp;labelColor=0B0E14" alt="Codex 0.166+">
+  <img src="https://img.shields.io/badge/Node-%E2%89%A522-22C55E?style=flat-square&amp;labelColor=0B0E14" alt="Node 22+">
+  <img src="https://img.shields.io/badge/Runtime-local-22C55E?style=flat-square&amp;labelColor=0B0E14" alt="Local runtime">
 </p>
 
 <p align="center">
@@ -146,7 +146,7 @@ Connect Discord or Telegram in the wizard and press **Test message** to check de
 
 The bot creates an `AI Forge` category with a `🔥・general` channel and makes a channel for each session on its own. Only you and the bot see them (server owners keep access through Discord permissions). The bot takes commands and button presses from you only.
 
-If the bot has no avatar or the server has no icon, AI Forge can set its default artwork. Existing pictures are preserved. It also switches the server's default notifications to "Only @mentions". [Bot cover PNG](docs/discord-telegram-cover.png) · [Telegram description video](docs/telegram-description.mp4) · [Rich Presence artwork](docs/rich-presence.gif)
+If the bot has no avatar or the server has no icon, AI Forge can set its default artwork. Existing pictures are preserved. It also switches the server's default notifications to "Only @mentions". [Bot cover PNG](docs/discord-telegram-cover.png) · [Telegram description picture](docs/telegram-description.png) · [Rich Presence artwork](docs/rich-presence.gif)
 
 ### Telegram
 

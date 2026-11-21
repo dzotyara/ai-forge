@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/banner.gif" alt="AI Forge" width="100%">
+  <img src="docs/banner.png" alt="AI Forge" width="100%">
 </p>
 
 <h1 align="center">Ваши ИИ-агенты больше не ждут вас</h1>
@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="#install-30"><img src="https://img.shields.io/badge/Easy%20Setup-Install-F97316?style=for-the-badge&amp;labelColor=0B0E14" alt="Быстрый старт"></a>
+  <a href="#install-30"><img src="https://img.shields.io/badge/Easy%20Setup-Install-22C55E?style=for-the-badge&amp;labelColor=0B0E14" alt="Быстрый старт"></a>
   <a href="#demo"><img src="https://img.shields.io/badge/%D0%9F%D0%BE%D1%81%D0%BC%D0%BE%D1%82%D1%80%D0%B5%D1%82%D1%8C-%D0%B2%20%D0%B4%D0%B5%D0%BB%D0%B5-5865F2?style=for-the-badge" alt="Посмотреть в деле"></a>
   <a href="https://github.com/dzotyara/ai-forge"><img src="https://img.shields.io/github/stars/dzotyara/ai-forge?style=for-the-badge&color=fbbf24&label=%E2%AD%90%20Stars" alt="Stars"></a>
   <a href="https://boosty.to/dzotyara"><img src="https://img.shields.io/badge/Boosty-support-f15f2c?style=for-the-badge&logo=boosty&logoColor=white" alt="Поддержать на Boosty"></a>
@@ -18,10 +18,10 @@
 
 <p align="center">
   <a href="https://github.com/dzotyara/ai-forge/actions/workflows/test.yml"><img src="https://github.com/dzotyara/ai-forge/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
-  <img src="https://img.shields.io/badge/Claude%20Code-plugin-F97316?style=flat-square&amp;labelColor=0B0E14" alt="Claude Code plugin">
-  <img src="https://img.shields.io/badge/Codex-0.166%2B-F97316?style=flat-square&amp;labelColor=0B0E14" alt="Codex 0.166+">
-  <img src="https://img.shields.io/badge/Node-%E2%89%A522-F97316?style=flat-square&amp;labelColor=0B0E14" alt="Node 22+">
-  <img src="https://img.shields.io/badge/Runtime-local-F97316?style=flat-square&amp;labelColor=0B0E14" alt="Локальный запуск">
+  <img src="https://img.shields.io/badge/Claude%20Code-plugin-22C55E?style=flat-square&amp;labelColor=0B0E14" alt="Claude Code plugin">
+  <img src="https://img.shields.io/badge/Codex-0.166%2B-22C55E?style=flat-square&amp;labelColor=0B0E14" alt="Codex 0.166+">
+  <img src="https://img.shields.io/badge/Node-%E2%89%A522-22C55E?style=flat-square&amp;labelColor=0B0E14" alt="Node 22+">
+  <img src="https://img.shields.io/badge/Runtime-local-22C55E?style=flat-square&amp;labelColor=0B0E14" alt="Локальный запуск">
 </p>
 
 <p align="center">
@@ -150,7 +150,7 @@ node "$(ls -d ~/.claude/plugins/cache/ai-forge/ai-forge/*/ | tail -1)configure.m
 
 Бот создаст категорию `AI Forge` и канал `🔥・general`, а каналы сессий будет создавать сам. Каналы видят только вы и бот (плюс владельцы сервера через права Discord). Команды и кнопки бот принимает только от вас.
 
-AI Forge может поставить фирменные изображения, если у бота ещё нет аватара или у сервера нет иконки. Ранее выбранные изображения сохраняются. Уведомления сервера по умолчанию переключатся на «Только @упоминания». [Обложка бота PNG](docs/discord-telegram-cover.png) · [Видео для описания в Telegram](docs/telegram-description.mp4) · [Иллюстрация Rich Presence](docs/rich-presence.gif)
+AI Forge может поставить фирменные изображения, если у бота ещё нет аватара или у сервера нет иконки. Ранее выбранные изображения сохраняются. Уведомления сервера по умолчанию переключатся на «Только @упоминания». [Обложка бота PNG](docs/discord-telegram-cover.png) · [Картинка для описания в Telegram](docs/telegram-description.png) · [Иллюстрация Rich Presence](docs/rich-presence.gif)
 
 ### Telegram
 
