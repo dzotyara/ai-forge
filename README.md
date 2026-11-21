@@ -71,18 +71,41 @@ Write a task in the main channel. The Boss splits it across sessions, starts bac
 
 ## See it in action
 
-<p align="center">
-  <img src="docs/discord-session.png" alt="A Claude Code session in Discord: a finished turn, a permission request, a question with options" width="90%">
-</p>
+### Discord
 
-| | |
-|---|---|
-| ![Approved in Discord](docs/discord-answered.png) | ![Background session request in the main channel](docs/discord-spawn.png) |
-| Allowed and answered from Discord; only you see the confirmation | The Boss asks before it starts a background session |
-| ![A session topic in Telegram](docs/telegram-session.png) | ![Answered from Telegram](docs/telegram-answered.png) |
-| The same session as a Telegram topic | Allowed and answered from Telegram, then a text reply |
-| ![Your Discord profile while agents work](docs/discord-rich-presence.png) | ![Settings panel](docs/settings-panel.png) |
-| Your Discord profile shows how many agents are working | A local settings panel in English or Russian |
+**1. A request arrives.** The session posts its turn, a permission request with buttons and a question with options.
+
+<p align="center"><img src="docs/discord-session.png" alt="A Claude Code session in Discord: a finished turn, a permission request, a question with options" width="100%"></p>
+
+**2. You answer from your phone.** Allowed and answered in Discord; only you see the confirmation, and the session carries on.
+
+<p align="center"><img src="docs/discord-answered.png" alt="Allowed and answered from Discord" width="100%"></p>
+
+**3. The Boss asks before it starts a background session.**
+
+<p align="center"><img src="docs/discord-spawn.png" alt="Background session request in the main channel" width="100%"></p>
+
+### Telegram
+
+<table>
+  <tr>
+    <td width="50%" align="center"><img src="docs/telegram-session.png" alt="A session topic in Telegram" width="100%"><br><sub>The same session as a Telegram topic</sub></td>
+    <td width="50%" align="center"><img src="docs/telegram-answered.png" alt="Answered from Telegram" width="100%"><br><sub>Allowed and answered from Telegram</sub></td>
+  </tr>
+</table>
+
+### Your Discord profile and the settings panel
+
+<img src="docs/discord-rich-presence.png" alt="Your Discord profile while agents work" width="270" align="left" hspace="12">
+
+While agents work, your Discord profile shows how many are running, with a button to this repo for people who look at it.
+
+<br clear="left">
+
+<details>
+<summary><b>Settings panel</b> (local, English or Russian)</summary>
+<p align="center"><img src="docs/settings-panel.png" alt="Settings panel" width="70%"></p>
+</details>
 
 ## How it works
 
