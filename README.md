@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="#install-in-30-seconds"><img src="https://img.shields.io/badge/Install-30%20seconds-16a34a?style=for-the-badge" alt="Install in 30 seconds"></a>
+  <a href="#install-in-30-seconds"><img src="https://img.shields.io/badge/Easy%20Setup-Install-F97316?style=for-the-badge&amp;labelColor=0B0E14" alt="Easy Setup"></a>
   <a href="#see-it-in-action"><img src="https://img.shields.io/badge/See%20it-in%20action-5865F2?style=for-the-badge" alt="See it in action"></a>
   <a href="https://github.com/dzotyara/ai-forge/stargazers"><img src="https://img.shields.io/github/stars/dzotyara/ai-forge?style=for-the-badge&color=fbbf24&label=%E2%AD%90%20Stars" alt="Stars"></a>
   <a href="https://boosty.to/dzotyara"><img src="https://img.shields.io/badge/Boosty-support-f15f2c?style=for-the-badge&logo=boosty&logoColor=white" alt="Support on Boosty"></a>
@@ -18,10 +18,10 @@
 
 <p align="center">
   <a href="https://github.com/dzotyara/ai-forge/actions/workflows/test.yml"><img src="https://github.com/dzotyara/ai-forge/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
-  <img src="https://img.shields.io/badge/Claude%20Code-plugin-d97757" alt="Claude Code plugin">
-  <img src="https://img.shields.io/badge/Codex-supported-10a37f" alt="Codex supported">
-  <img src="https://img.shields.io/badge/node-%E2%89%A522-3c873a" alt="Node 22+">
-  <img src="https://img.shields.io/badge/server-none%20needed-64748b" alt="No server needed">
+  <img src="https://img.shields.io/badge/Claude%20Code-plugin-F97316?style=flat-square&amp;labelColor=0B0E14" alt="Claude Code plugin">
+  <img src="https://img.shields.io/badge/Codex-0.166%2B-F97316?style=flat-square&amp;labelColor=0B0E14" alt="Codex 0.166+">
+  <img src="https://img.shields.io/badge/Node-%E2%89%A522-F97316?style=flat-square&amp;labelColor=0B0E14" alt="Node 22+">
+  <img src="https://img.shields.io/badge/Runtime-local-F97316?style=flat-square&amp;labelColor=0B0E14" alt="Local runtime">
 </p>
 
 <p align="center">
@@ -116,7 +116,7 @@ Everything runs on your machine: a small background service and the plugin's hoo
 Use Discord, Telegram, or both. With both, a request shows up in both places and the first answer wins.
 
 <a id="install-in-30-seconds"></a>
-## Install
+## Easy Setup
 
 You need Claude Code and Node.js 22+. Presence detection (whether you're at your computer) works on macOS; on other systems you're treated as away.
 
@@ -131,11 +131,11 @@ Open the settings panel:
 node "$(ls -d ~/.claude/plugins/cache/ai-forge/ai-forge/*/ | tail -1)configure.mjs" --ui
 ```
 
-The panel is local: it listens on `127.0.0.1` with a random key, never shows full tokens and never sends them anywhere. Pick **English** or **Русский** there.
+The panel listens on `127.0.0.1` and masks stored tokens. The local bridge uses tokens to authenticate with the messaging services you connect. Pick **English** or **Русский** in the panel.
 
 On a fresh install the **setup wizard** opens on top of the panel and walks you through Discord or Telegram step by step. The full walkthrough with troubleshooting is in the **[setup guide](docs/SETUP.md)**.
 
-Start a new session afterwards, or run `/reload-plugins` in an open one.
+Connect Discord or Telegram in the wizard and press **Test message** to check delivery. Start a new Claude Code session or run `/reload-plugins` in an open one. For Codex, follow the [Codex setup](#codex).
 
 ### Discord
 
@@ -146,7 +146,7 @@ Start a new session afterwards, or run `/reload-plugins` in an open one.
 
 The bot creates an `AI Forge` category with a `🔥・general` channel and makes a channel for each session on its own. Only you and the bot see them (server owners keep access through Discord permissions). The bot takes commands and button presses from you only.
 
-If the bot has no avatar and the server has no icon, the bot sets the anvil picture. It never replaces pictures you chose. It also switches the server's default notifications to "Only @mentions".
+If the bot has no avatar or the server has no icon, AI Forge can set its default artwork. Existing pictures are preserved. It also switches the server's default notifications to "Only @mentions". [Optional Discord and Telegram cover](docs/discord-telegram-cover.png)
 
 ### Telegram
 

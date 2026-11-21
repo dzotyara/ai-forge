@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="#install-30"><img src="https://img.shields.io/badge/%D0%A3%D1%81%D1%82%D0%B0%D0%BD%D0%BE%D0%B2%D0%BA%D0%B0-30%20%D1%81%D0%B5%D0%BA%D1%83%D0%BD%D0%B4-16a34a?style=for-the-badge" alt="Установка за 30 секунд"></a>
+  <a href="#install-30"><img src="https://img.shields.io/badge/Easy%20Setup-Install-F97316?style=for-the-badge&amp;labelColor=0B0E14" alt="Быстрый старт"></a>
   <a href="#demo"><img src="https://img.shields.io/badge/%D0%9F%D0%BE%D1%81%D0%BC%D0%BE%D1%82%D1%80%D0%B5%D1%82%D1%8C-%D0%B2%20%D0%B4%D0%B5%D0%BB%D0%B5-5865F2?style=for-the-badge" alt="Посмотреть в деле"></a>
   <a href="https://github.com/dzotyara/ai-forge/stargazers"><img src="https://img.shields.io/github/stars/dzotyara/ai-forge?style=for-the-badge&color=fbbf24&label=%E2%AD%90%20Stars" alt="Stars"></a>
   <a href="https://boosty.to/dzotyara"><img src="https://img.shields.io/badge/Boosty-support-f15f2c?style=for-the-badge&logo=boosty&logoColor=white" alt="Поддержать на Boosty"></a>
@@ -18,10 +18,10 @@
 
 <p align="center">
   <a href="https://github.com/dzotyara/ai-forge/actions/workflows/test.yml"><img src="https://github.com/dzotyara/ai-forge/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
-  <img src="https://img.shields.io/badge/Claude%20Code-plugin-d97757" alt="Claude Code plugin">
-  <img src="https://img.shields.io/badge/Codex-supported-10a37f" alt="Codex supported">
-  <img src="https://img.shields.io/badge/node-%E2%89%A522-3c873a" alt="Node 22+">
-  <img src="https://img.shields.io/badge/server-none%20needed-64748b" alt="No server needed">
+  <img src="https://img.shields.io/badge/Claude%20Code-plugin-F97316?style=flat-square&amp;labelColor=0B0E14" alt="Claude Code plugin">
+  <img src="https://img.shields.io/badge/Codex-0.166%2B-F97316?style=flat-square&amp;labelColor=0B0E14" alt="Codex 0.166+">
+  <img src="https://img.shields.io/badge/Node-%E2%89%A522-F97316?style=flat-square&amp;labelColor=0B0E14" alt="Node 22+">
+  <img src="https://img.shields.io/badge/Runtime-local-F97316?style=flat-square&amp;labelColor=0B0E14" alt="Локальный запуск">
 </p>
 
 <p align="center">
@@ -120,7 +120,7 @@ flowchart LR
 Можно включить Discord, Telegram или оба сразу. В режиме «оба» запрос виден в двух местах, а решение принимается один раз.
 
 <a id="install-30"></a>
-## Установка
+## Быстрый старт
 
 Нужны Claude Code и Node.js 22+. Умная доставка (определение, что вы за компьютером) работает на macOS, на других ОС считается, что вас нет.
 
@@ -135,11 +135,11 @@ claude plugin install ai-forge@ai-forge
 node "$(ls -d ~/.claude/plugins/cache/ai-forge/ai-forge/*/ | tail -1)configure.mjs" --ui
 ```
 
-Панель локальная: открывается на `127.0.0.1` со случайным ключом, токены целиком не показывает и никуда не отправляет.
+Панель открывается на `127.0.0.1` и скрывает полные значения токенов. Локальный сервис использует их для авторизации в подключённых мессенджерах.
 
 На чистой установке сверху панели открывается **мастер настройки**: он проведёт по Discord или Telegram шаг за шагом. Подробная инструкция с разбором проблем лежит в **[гайде по настройке](docs/SETUP.ru.md)**. По умолчанию интерфейс на английском: выберите **Русский** в разделе **Notifications → Language**.
 
-После установки начните новую сессию или выполните `/reload-plugins` в уже открытой.
+Подключите Discord или Telegram в мастере и нажмите **Тестовое сообщение**, чтобы проверить доставку. Начните новую сессию Claude Code или выполните `/reload-plugins` в открытой. Для Codex см. [настройку Codex](#codex).
 
 ### Discord
 
@@ -150,7 +150,7 @@ node "$(ls -d ~/.claude/plugins/cache/ai-forge/ai-forge/*/ | tail -1)configure.m
 
 Бот создаст категорию `AI Forge` и канал `🔥・general`, а каналы сессий будет создавать сам. Каналы видят только вы и бот (плюс владельцы сервера через права Discord). Команды и кнопки бот принимает только от вас.
 
-Если у бота нет аватара, а у сервера иконки, бот поставит картинку наковальни. Свои картинки он не трогает. Уведомления сервера по умолчанию бот переключит на «Только @упоминания».
+AI Forge может поставить фирменные изображения, если у бота ещё нет аватара или у сервера нет иконки. Ранее выбранные изображения сохраняются. Уведомления сервера по умолчанию переключатся на «Только @упоминания». [Обложка для Discord и Telegram](docs/discord-telegram-cover.png)
 
 ### Telegram
 
