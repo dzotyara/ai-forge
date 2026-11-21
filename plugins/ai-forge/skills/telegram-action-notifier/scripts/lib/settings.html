@@ -183,6 +183,11 @@
       </div>
     </div>
     <div class="row">
+      <label for="codexApprovalNotifications" data-ru="Уведомления о проверках Codex">Codex approval notifications</label>
+      <label class="grow"><input id="codexApprovalNotifications" type="checkbox">
+        <span data-ru="Включай при ручных одобрениях. При автоматической проверке Codex тоже вызывает этот хук.">Enable for manual approvals. Codex also calls this hook for automatic review.</span></label>
+    </div>
+    <div class="row">
       <label for="chatReplies" data-ru="Ответы из Telegram">Replies from Telegram</label>
       <label class="grow"><input id="chatReplies" type="checkbox"> <span data-ru="Мои сообщения в теме сессии передаются в Claude Code">My messages in a session topic go to Claude Code</span></label>
     </div>
@@ -376,6 +381,7 @@ function render(s, { keepForm = false } = {}) {
     $("notify").value = st.notify;
     $("approvalWaitSec").value = st.approvalWaitSec;
     $("approvalWaitSec-label").textContent = waitLabel(st.approvalWaitSec);
+    $("codexApprovalNotifications").checked = st.codexApprovalNotifications;
     $("chatReplies").checked = st.chatReplies;
     $("spawnConfirm").value = st.spawnConfirm;
     $("workerPermissions").value = st.workerPermissions;
@@ -509,6 +515,7 @@ $("settings-save").onclick = () => act(async () => {
       notificationTarget: $("notificationTarget").value,
       notify: $("notify").value,
       approvalWaitSec: Number($("approvalWaitSec").value),
+      codexApprovalNotifications: $("codexApprovalNotifications").checked,
       chatReplies: $("chatReplies").checked,
       spawnConfirm: $("spawnConfirm").value,
       workerPermissions: $("workerPermissions").value,

@@ -1,5 +1,6 @@
 import process from "node:process";
 import readline from "node:readline/promises";
+import { registerCodexHooks } from "./skills/telegram-action-notifier/scripts/lib/codex-hooks.mjs";
 
 import {
   configurationPath,
@@ -167,7 +168,13 @@ async function main() {
 }
 
 try {
-  if (process.argv.includes("--ui")) {
+  if (process.argv.includes("--register-codex-hooks")) {
+    const file = await registerCodexHooks();
+    console.log(L(
+      `Хуки AI Forge записаны в ${file}. Проверьте и подтвердите их в Codex → Settings → Hooks.`,
+      `AI Forge hooks registered in ${file}. Review and trust them in Codex → Settings → Hooks.`,
+    ));
+  } else if (process.argv.includes("--ui")) {
     const { startUi } = await import("./skills/telegram-action-notifier/scripts/lib/ui.mjs");
     await startUi();
   } else {

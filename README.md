@@ -263,12 +263,16 @@ Everything is in the panel or in `~/.codex/telegram-action-notifier/config.json`
 
 ## Codex
 
-In Codex (0.166+) permission requests come to Discord with **Allow** / **Deny**. Codex waits up to 15 minutes (`codexApprovalWaitSec`, 900 s) and then asks in its own window. The press is received by the daemon on your Claude Code machine, which writes the answer into the message, and the Codex hook reads it from there, so it works across devices. Telegram stays notification-only for Codex. After updating, restart Codex and trust the new hooks in **Settings → Hooks**.
+AI Forge sends Codex turns that need your action to Discord or Telegram. Reply in Codex.
+
+If you use manual approvals, enable **Notifications → Codex approval notifications**. On Codex 0.166+, Discord then shows **Allow** / **Deny** and Codex waits up to 15 minutes (`codexApprovalWaitSec`) before asking in its own window. The Claude Code daemon records the decision in the Discord message for the Codex hook to read, including across devices. Telegram stays notification-only. Leave this setting off with automatic review: Codex fires the same hook event before selecting the reviewer.
 
 ```bash
 codex plugin marketplace add dzotyara/ai-forge --ref main
 codex plugin add ai-forge@ai-forge
 ```
+
+Restart Codex and review the hooks in **Settings → Hooks**. If Codex still lists no hooks for AI Forge, run `node <installed-ai-forge-directory>/configure.mjs --register-codex-hooks`. This option creates the user `hooks.json` only if it doesn't already exist. Reload the hooks list and review each hook in Codex. Remove the fallback entries once Codex lists the bundled hooks, so the same events aren't handled twice. After upgrading AI Forge, update any fallback paths that still point to the old version.
 
 ## Development
 

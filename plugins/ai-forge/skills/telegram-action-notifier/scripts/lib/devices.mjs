@@ -22,19 +22,15 @@ const codexSessions = () => path.join(process.env.CODEX_HOME?.trim() || path.joi
 
 /**
  * Codex sessions on this device written to in the last 90 s. Rollouts live in
- * sessions/YYYY/MM/DD; a resumed session keeps writing its old file, so look back a week.
+ * sessions/YYYY/MM/DD. A resumed session keeps writing to the day it was created.
  */
 export async function codexWorking(now = Date.now(), root = codexSessions()) {
   let count = 0;
-  for (let day = 0; day < 7; day += 1) {
-    const date = new Date(now - day * 86_400_000);
-    const dir = path.join(root, String(date.getFullYear()), String(date.getMonth() + 1).padStart(2, "0"),
-      String(date.getDate()).padStart(2, "0"));
-    for (const file of await fsp.readdir(dir).catch(() => [])) {
-      if (!file.endsWith(".jsonl")) continue;
-      const stat = await fsp.stat(path.join(dir, file)).catch(() => null);
-      if (stat && now - stat.mtimeMs < ACTIVE_MS) count += 1;
-    }
+  const entries = await fsp.readdir(root, { withFileTypes: true, recursive: true }).catch(() => []);
+  for (const entry of entries) {
+    if (!entry.isFile() || !entry.name.startsWith("rollout-") || !entry.name.endsWith(".jsonl")) continue;
+    const stat = await fsp.stat(path.join(entry.parentPath, entry.name)).catch(() => null);
+    if (stat && now - stat.mtimeMs < ACTIVE_MS) count += 1;
   }
   return count;
 }
