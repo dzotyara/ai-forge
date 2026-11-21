@@ -226,6 +226,7 @@
       <span class="label"></span>
       <span class="grow">
         <button id="test" type="button" data-ru="Тестовое сообщение">Test message</button>
+        <button id="look-refresh" type="button" data-ru="Обновить оформление">Refresh look</button>
         <button id="restart" type="button" data-ru="Перезапустить">Restart</button>
         <button id="stop" class="danger" type="button" data-ru="Остановить">Stop</button>
       </span>
@@ -522,6 +523,10 @@ $("settings-save").onclick = () => act(async () => {
   }
 }, L("Настройки сохранены", "Settings saved"));
 $("test").onclick = () => act(() => api("/api/test", {}), L("Тестовое сообщение отправлено", "Test message sent"));
+$("look-refresh").onclick = () => act(async () => {
+  const result = await api("/api/look/refresh", {});
+  if (result.warnings?.length) throw new Error(result.warnings.join(" "));
+}, L("Оформление бота обновлено", "Bot look refreshed"));
 $("restart").onclick = () => act(() => api("/api/daemon/restart", {}), L("Служба перезапущена", "Service restarted"));
 $("stop").onclick = () => act(() => api("/api/daemon/stop", {}), L("Служба остановлена", "Service stopped"));
 

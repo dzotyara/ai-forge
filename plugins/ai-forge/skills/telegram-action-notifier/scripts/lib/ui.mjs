@@ -38,9 +38,34 @@ import {
   setTargetChat,
   telegram,
 } from "./common.mjs";
-import { discordId, setupDiscord } from "./discord.mjs";
+import { discordId, refreshDiscordLook, setupDiscord } from "./discord.mjs";
 import { L, lang, resetLang } from "./i18n.mjs";
 import { detectPresence, effectiveMode } from "./presence.mjs";
+
+const LOOK_AVATAR = new URL("../../assets/discord-avatar.png", import.meta.url);
+
+/** Telegram: the bot's profile photo and, for a group, the group photo. Returns warnings. */
+async function refreshTelegramLook(settings) {
+  const warnings = [];
+  const photo = new Blob([await readFile(LOOK_AVATAR)], { type: "image/png" });
+  const call = async (method, form) => {
+    const response = await fetch(`https://api.telegram.org/bot${settings.token}/${method}`, { method: "POST", body: form });
+    const data = await response.json().catch(() => ({}));
+    if (!data.ok) throw new Error(data.description || `HTTP ${response.status}`);
+  };
+  const bot = new FormData();
+  bot.append("photo", JSON.stringify({ type: "static", photo: "attach://pic" }));
+  bot.append("pic", photo, "avatar.png");
+  await call("setMyProfilePhoto", bot).catch((error) => warnings.push(L(`Фото бота в Telegram не обновлено (${error.message}).`, `Telegram bot photo not updated (${error.message}).`)));
+  if (!isPrivateChatId(settings.chatId)) {
+    const group = new FormData();
+    group.append("chat_id", String(settings.chatId));
+    group.append("photo", photo, "avatar.png");
+    await call("setChatPhoto", group).catch((error) => warnings.push(L(`Фото группы не обновлено (${error.message}).`, `Group photo not updated (${error.message}).`)));
+  }
+  return warnings;
+}
+
 
 const PAGE = new URL("./settings.html", import.meta.url);
 const IDLE_MS = 30 * 60_000;
@@ -339,6 +364,23 @@ const ROUTES = {
       return [502, { error: redactSecrets(error.description || L("Не удалось отправить", "Could not send")) }];
     }
     return { ok: true };
+  },
+
+  "POST /api/look/refresh": async () => {
+    const settings = await loadSettings();
+    const warnings = [];
+    let done = 0;
+    const discord = discordSettings(settings);
+    if (discord && discord.token?.guild) {
+      warnings.push(...await refreshDiscordLook(discord.token).catch((error) => [redactSecrets(error.message)]));
+      done += 1;
+    }
+    if (settings.token && settings.chatId) {
+      warnings.push(...await refreshTelegramLook(settings).catch((error) => [redactSecrets(error.message)]));
+      done += 1;
+    }
+    if (!done) return [400, { error: L("Сначала подключите Discord или Telegram.", "Connect Discord or Telegram first.") }];
+    return { ok: true, warnings };
   },
 
   "POST /api/daemon/restart": async () => {

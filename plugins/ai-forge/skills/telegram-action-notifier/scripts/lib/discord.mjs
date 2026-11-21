@@ -21,9 +21,9 @@ const DUPLICATE_MARK = "⁣";
 const stripMark = (id) => String(id ?? "").replace(/⁣\d+$/, "");
 
 export const CATEGORY_NAME = "AI Forge";
-export const GENERAL_NAME = "🔥・general";
+export const GENERAL_NAME = "⚒・forge";
 const LEGACY_CATEGORY_NAMES = ["AI Factory", "myskills"];
-const LEGACY_GENERAL_NAMES = ["🏭・general", "general"];
+const LEGACY_GENERAL_NAMES = ["🔥・general", "🏭・general", "general"];
 const GENERAL_TOPIC = L(
   "Босс, запросы на запуск и общие уведомления. Напишите сюда — сообщение получит Босс. Команды: /status, /away, /here, /mute.",
   "Boss, launch requests and general notifications. Write here to message the Boss. Commands: /status, /away, /here, /mute.",
@@ -129,12 +129,14 @@ async function imageDataUri(name) {
  * Give the bot and the server the AI Forge look, only where nothing is set yet:
  * a picture the owner chose is never replaced. Returns warnings, never throws.
  */
-export async function brandDiscord(bot, guild, identity) {
+export async function brandDiscord(bot, guild, identity, { force = false } = {}) {
   const warnings = [];
   const app = await discordApi(bot, "GET", "/applications/@me").catch(() => null);
   if (app && !(app.flags & MESSAGE_CONTENT_FLAGS)) warnings.push(FATAL_CLOSE[4014]);
-  if (!identity.avatar) {
-    await discordApi(bot, "PATCH", "/users/@me", { avatar: await imageDataUri("discord-avatar.png") })
+  if (force || !identity.avatar) {
+    const look = { avatar: await imageDataUri("discord-avatar.png") };
+    if (force) look.banner = await imageDataUri("discord-banner.png");
+    await discordApi(bot, "PATCH", "/users/@me", look)
       .catch((error) => warnings.push(error.status === 429
         ? L(
           "Discord временно не даёт сменить аватар бота: попробуйте подключить ещё раз через час.",
@@ -151,7 +153,7 @@ export async function brandDiscord(bot, guild, identity) {
         `Server notifications not switched to “Only @mentions” (${error.message}).`,
       )));
   }
-  if (server && !server.icon) {
+  if (server && (force || !server.icon)) {
     await discordApi(bot, "PATCH", `/guilds/${guild}`, { icon: await imageDataUri("discord-server-icon.png") })
       .catch((error) => warnings.push(error.status === 403
         ? L(
@@ -159,6 +161,24 @@ export async function brandDiscord(bot, guild, identity) {
           "Server icon not set: give the bot the Manage Server permission and connect again.",
         )
         : L(`Иконка сервера не обновлена (${error.message}).`, `Server icon not updated (${error.message}).`)));
+  }
+  return warnings;
+}
+
+/**
+ * "Refresh look" in the settings panel: put the current AI Forge artwork on an
+ * already connected bot and server (avatar, profile banner, server icon), and
+ * rename the main channel to the current name if it still has an old one.
+ */
+export async function refreshDiscordLook(bot) {
+  const identity = await botUser(bot);
+  const warnings = await brandDiscord(bot, bot.guild, identity, { force: true });
+  if (discordId(bot.channel)) {
+    const channel = await discordApi(bot, "GET", `/channels/${bot.channel}`).catch(() => null);
+    if (channel && channel.name !== GENERAL_NAME && LEGACY_GENERAL_NAMES.includes(channel.name)) {
+      await discordApi(bot, "PATCH", `/channels/${bot.channel}`, { name: GENERAL_NAME })
+        .catch((error) => warnings.push(L(`Канал не переименован (${error.message}).`, `Channel not renamed (${error.message}).`)));
+    }
   }
   return warnings;
 }
