@@ -28,6 +28,7 @@ import {
   safeSessionId,
   sessionContext,
   stopDaemon,
+  takeMidTurnReplies,
   topicSupport,
   topicsEnabled,
   touchSession,
@@ -388,13 +389,23 @@ async function onUserPromptSubmit(event) {
   }
 }
 
-async function onPostToolUse(event) {
+async function onPostToolUse(event, settings) {
   if (!event.session_id || typeof event.tool_name !== "string") return;
-  await resolvePending(safeSessionId(event.session_id), {
+  const sessionId = safeSessionId(event.session_id);
+  await resolvePending(sessionId, {
     kinds: ["approval"],
     toolName: event.tool_name,
     edit: true,
   });
+  // A message from the chat while the turn is still running: hand it over now.
+  // Only to the main agent: a subagent's tool call carries the same session id
+  // plus agent_id/agent_type, and the message would end up in the subagent.
+  if (!isClaudeCode() || event.agent_id || event.agent_type) return;
+  const replies = await takeMidTurnReplies(settings, sessionId).catch(() => "");
+  if (!replies) return;
+  process.stdout.write(JSON.stringify({
+    hookSpecificOutput: { hookEventName: "PostToolUse", additionalContext: replies },
+  }));
 }
 
 /** Extra SessionStart context for a headless worker: who it is and how it reports. */
@@ -707,7 +718,7 @@ export async function handleEvent(event) {
     return;
   }
   if (event.hook_event_name === "PostToolUse") {
-    await onPostToolUse(event);
+    await onPostToolUse(event, settings);
     return;
   }
   if (event.hook_event_name === "PreToolUse") {
