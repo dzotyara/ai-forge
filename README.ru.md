@@ -98,11 +98,15 @@ AI Forge присылает каждый момент, где нужны вы, �
 
 ### Профиль Discord и панель настроек
 
-<img src="docs/discord-rich-presence.png" alt="Статус в профиле Discord" width="270" align="left" hspace="12">
-
-Пока агенты работают, профиль Discord показывает, сколько их, и кнопку на этот репозиторий для тех, кто смотрит профиль.
-
-<br clear="left">
+<table>
+  <tr>
+    <td width="62%" align="center"><img src="docs/discord-rich-presence.png" alt="Профиль Discord, пока агенты работают: Playing AI Forge, агентов в работе: 2" width="100%"></td>
+    <td width="38%" align="center"><img src="docs/rich-presence.gif" alt="Картинка Rich Presence AI Forge: молот бьёт по наковальне" width="160"></td>
+  </tr>
+  <tr>
+    <td colspan="2"><sub>Пока агенты работают, профиль Discord показывает «Playing AI Forge» и сколько их, а тем, кто смотрит профиль, — кнопку на этот репозиторий.</sub></td>
+  </tr>
+</table>
 
 <details>
 <summary><b>Панель настроек</b> (локальная, на английском или русском)</summary>

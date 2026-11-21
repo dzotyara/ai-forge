@@ -96,11 +96,15 @@ Write a task in the main channel. The Boss splits it across sessions, starts bac
 
 ### Your Discord profile and the settings panel
 
-<img src="docs/discord-rich-presence.png" alt="Your Discord profile while agents work" width="270" align="left" hspace="12">
-
-While agents work, your Discord profile shows how many are running, with a button to this repo for people who look at it.
-
-<br clear="left">
+<table>
+  <tr>
+    <td width="62%" align="center"><img src="docs/discord-rich-presence.png" alt="Your Discord profile while agents work: Playing AI Forge, agents working: 2" width="100%"></td>
+    <td width="38%" align="center"><img src="docs/rich-presence.gif" alt="AI Forge Rich Presence artwork: the hammer strikes the anvil" width="160"></td>
+  </tr>
+  <tr>
+    <td colspan="2"><sub>While agents work, your Discord profile shows "Playing AI Forge" with how many are running, and a button to this repo for people who look at it.</sub></td>
+  </tr>
+</table>
 
 <details>
 <summary><b>Settings panel</b> (local, English or Russian)</summary>
