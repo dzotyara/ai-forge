@@ -42,6 +42,8 @@ You give Claude Code a big task and step away. Five minutes later it stops at *"
 
 AI Forge sends every moment that needs you to the chat you already have open, with buttons. One tap and the agent is back at work.
 
+<p align="center"><img src="docs/demo.gif" alt="Claude Code asks to run a command, the request arrives in Discord, one tap on Allow, and the build and tests finish" width="100%"></p>
+
 <table>
 <tr>
 <td width="33%" valign="top">
