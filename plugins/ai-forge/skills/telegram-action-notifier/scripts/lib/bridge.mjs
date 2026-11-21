@@ -934,6 +934,43 @@ export async function takeInbox(sessionId) {
   });
 }
 
+/**
+ * Chat replies handed to the session: this turn answers in the chat, the session
+ * counts as working until its Stop, and the last message gets 👀.
+ */
+export async function acknowledgeReplies(settings, sessionId, entries) {
+  const last = entries.filter((entry) => entry.kind !== "button" && entry.messageId).at(-1);
+  await updateState((next) => {
+    if (next.sessions[sessionId]) next.sessions[sessionId].replyToTelegram = true; // this turn answers in the chat
+  });
+  await markTurn(sessionId, true);
+  if (!last) return;
+  const fromDiscord = String(last.messageId).includes(":");
+  const target = fromDiscord ? discordSettings(settings) : settings;
+  await telegram(target?.token, "setMessageReaction", {
+    chat_id: target?.chatId,
+    message_id: last.messageId,
+    reaction: [{ type: "emoji", emoji: "👀" }],
+  }, { timeoutMs: 5000 }).catch(() => {});
+}
+
+/**
+ * Replies that arrived while the session is in the middle of a long turn. The
+ * PostToolUse hook hands them to the model at its next tool call, so a busy
+ * session no longer makes the owner wait until the whole turn ends.
+ * Cheap when there is nothing: one stat, no lock.
+ */
+export async function takeMidTurnReplies(settings, sessionId) {
+  if (!(await fsp.stat(files.inbox(sessionId)).catch(() => null))?.size) return "";
+  const entries = await takeInbox(sessionId);
+  if (!entries.length) return "";
+  await acknowledgeReplies(settings, sessionId, entries);
+  return L(
+    "Пока вы работали, владелец написал из чата. Учтите это сейчас; ответ, как обычно, в конце хода.\n\n",
+    "While you were working, the owner wrote from the chat. Take it into account now; answer as usual at the end of this turn.\n\n",
+  ) + formatReplies(entries);
+}
+
 /** One structured line per Telegram event, as Claude sees it in the wake-up reminder. */
 export function formatReplies(entries) {
   return entries
@@ -992,21 +1029,7 @@ export async function waitForReply(event, { pollMs = 1000, maxMs = WAITER_MAX_MS
       }
       const entries = await takeInbox(sessionId);
       if (entries.length) {
-        const last = entries.filter((entry) => entry.kind !== "button" && entry.messageId).at(-1);
-        await updateState((next) => {
-          if (next.sessions[sessionId]) next.sessions[sessionId].replyToTelegram = true; // this turn answers in Telegram
-        });
-        // The session is back at work: count it until its Stop.
-        await markTurn(sessionId, true);
-        if (last) {
-          const fromDiscord = String(last.messageId).includes(":");
-          const target = fromDiscord ? discordSettings(settings) : settings;
-          await telegram(target?.token, "setMessageReaction", {
-            chat_id: target?.chatId,
-            message_id: last.messageId,
-            reaction: [{ type: "emoji", emoji: "👀" }],
-          }, { timeoutMs: 5000 }).catch(() => {});
-        }
+        await acknowledgeReplies(settings, sessionId, entries);
         return { code: 2, text: formatReplies(entries) };
       }
       if (Date.now() - lastDaemonCheck > 30_000) {
@@ -1865,8 +1888,8 @@ export async function handleUpdate(settings, update, { presenceNow = async () =>
   }
   if (!hasLiveWaiter(session)) {
     return notice(L(
-      "⏳ Сессия сейчас занята. Передам сообщение, как только она закончит текущий ответ.",
-      "⏳ Session busy. The message will be delivered when it finishes the current reply.",
+      "⏳ Сессия сейчас работает. Она увидит сообщение на следующем шаге.",
+      "⏳ The session is working. It will see your message at its next step.",
     ));
   }
   return undefined;

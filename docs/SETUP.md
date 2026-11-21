@@ -73,7 +73,7 @@ codex plugin add ai-forge@ai-forge
 | The bot didn't create channels | It needs **Manage Channels** on your server: open the invite link from the wizard again |
 | No server icon | Give the bot **Manage Server**, or set the icon yourself |
 | Telegram "No groups found" | Post a new message in the group after adding the bot, then press **Find the group** again |
-| "Session busy" in the chat | The session is in the middle of a turn: the message arrives when it finishes |
+| "The session is working" in the chat | The session is in the middle of a turn: it sees your message at its next step (next tool call) |
 | "This session isn't running in the app" | Open the session in Claude; the message is delivered at once |
 | Buttons do nothing | Make sure the background service runs: **Service** section in the panel, or press **Restart** |
 | A message says "decide in the app" | No one pressed a button before the wait ran out (`approvalWaitSec`); the app prompt still works |
