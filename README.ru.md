@@ -73,18 +73,41 @@ AI Forge присылает каждый момент, где нужны вы, �
 
 ## Посмотреть в деле
 
-<p align="center">
-  <img src="docs/discord-session.png" alt="Сессия Claude Code в Discord: итог хода, запрос разрешения, вопрос с вариантами" width="90%">
-</p>
+### Discord
 
-| | |
-|---|---|
-| ![Ответ из Discord](docs/discord-answered.png) | ![Запрос на запуск фоновой сессии](docs/discord-spawn.png) |
-| Разрешено и отвечено из Discord; подтверждение видите только вы | Босс спрашивает перед запуском фоновой сессии |
-| ![Тема сессии в Telegram](docs/telegram-session.png) | ![Ответ из Telegram](docs/telegram-answered.png) |
-| Та же сессия в теме Telegram | Разрешено и отвечено из Telegram, потом ответ текстом |
-| ![Статус в профиле Discord](docs/discord-rich-presence.png) | ![Панель настроек](docs/settings-panel.png) |
-| Профиль Discord показывает, сколько агентов в работе | Локальная панель настроек на английском или русском |
+**1. Приходит запрос.** Сессия присылает итог хода, запрос разрешения с кнопками и вопрос с вариантами.
+
+<p align="center"><img src="docs/discord-session.png" alt="Сессия Claude Code в Discord: итог хода, запрос разрешения, вопрос с вариантами" width="100%"></p>
+
+**2. Вы отвечаете с телефона.** Разрешено и отвечено в Discord; подтверждение видите только вы, а сессия работает дальше.
+
+<p align="center"><img src="docs/discord-answered.png" alt="Ответ из Discord" width="100%"></p>
+
+**3. Босс спрашивает перед запуском фоновой сессии.**
+
+<p align="center"><img src="docs/discord-spawn.png" alt="Запрос на запуск фоновой сессии" width="100%"></p>
+
+### Telegram
+
+<table>
+  <tr>
+    <td width="50%" align="center"><img src="docs/telegram-session.png" alt="Тема сессии в Telegram" width="100%"><br><sub>Та же сессия в теме Telegram</sub></td>
+    <td width="50%" align="center"><img src="docs/telegram-answered.png" alt="Ответ из Telegram" width="100%"><br><sub>Разрешено и отвечено из Telegram</sub></td>
+  </tr>
+</table>
+
+### Профиль Discord и панель настроек
+
+<img src="docs/discord-rich-presence.png" alt="Статус в профиле Discord" width="270" align="left" hspace="12">
+
+Пока агенты работают, профиль Discord показывает, сколько их, и кнопку на этот репозиторий для тех, кто смотрит профиль.
+
+<br clear="left">
+
+<details>
+<summary><b>Панель настроек</b> (локальная, на английском или русском)</summary>
+<p align="center"><img src="docs/settings-panel.png" alt="Панель настроек" width="70%"></p>
+</details>
 
 Скриншоты сняты на английском интерфейсе. Русский включается в панели настроек.
 
