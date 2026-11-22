@@ -1900,7 +1900,7 @@ export function isAsleep(state, sessionId, session, now = Date.now(), alive = pi
   if (!session || session.ended || session.headless || session.closed || session.host === "Codex") return false;
   if (hasLiveWaiter(session, alive)) return false;
   if (now - (state.meta?.turns?.[sessionId] ?? 0) < TURN_STALE_MS) return false;
-  return ![...active].some((id) => id === sessionId || id.startsWith(`${sessionId}/`));
+  return ![...active.keys()].some((id) => id === sessionId || id.startsWith(`${sessionId}/`));
 }
 
 const BOT_COMMANDS = [
@@ -1960,15 +1960,22 @@ export function discordActivity(settings, state, now = Date.now(), extra = 0) {
 // so a transcript written in the last 90 s means the session is working. This also
 // catches sessions whose hooks predate turn tracking. Refreshed by the daemon tick.
 const TRANSCRIPT_ACTIVE_MS = 90_000;
-let activeTranscriptIds = new Set();
+// The last transcript line lands within a second of SessionEnd; a write later than
+// this means the session was resumed while its `ended` flag stayed behind.
+const ENDED_GRACE_MS = 10_000;
+let activeTranscriptIds = new Map();
 
 /**
  * Scan ~/.claude/projects for transcripts written recently: "<session id>" for a
- * session, "<session id>/<agent file>" for each of its running subagents.
+ * session, "<session id>/<agent file>" for each of its running subagents, mapped to
+ * the time the file was last written.
  */
 export async function refreshActiveTranscripts(now = Date.now(), root = path.join(os.homedir(), ".claude", "projects")) {
-  const ids = new Set();
-  const fresh = async (file) => now - (await fsp.stat(file)).mtimeMs < TRANSCRIPT_ACTIVE_MS;
+  const ids = new Map();
+  const fresh = async (file) => {
+    const { mtimeMs } = await fsp.stat(file);
+    return now - mtimeMs < TRANSCRIPT_ACTIVE_MS ? mtimeMs : 0;
+  };
   const projects = await fsp.readdir(root).catch(() => []);
   await Promise.all(projects.map(async (project) => {
     const dir = path.join(root, project);
@@ -1976,12 +1983,14 @@ export async function refreshActiveTranscripts(now = Date.now(), root = path.joi
     for (const entry of entries) {
       try {
         if (entry.isFile() && entry.name.endsWith(".jsonl")) {
-          if (await fresh(path.join(dir, entry.name))) ids.add(entry.name.slice(0, -6));
+          const at = await fresh(path.join(dir, entry.name));
+          if (at) ids.set(entry.name.slice(0, -6), at);
         } else if (entry.isDirectory()) {
           const sub = path.join(dir, entry.name, "subagents");
           for (const file of await fsp.readdir(sub).catch(() => [])) {
             // Every running subagent is a worker of its own: "<session>/<agent file>".
-            if (await fresh(path.join(sub, file))) ids.add(`${entry.name}/${file}`);
+            const at = await fresh(path.join(sub, file));
+            if (at) ids.set(`${entry.name}/${file}`, at);
           }
         }
       } catch { /* a file can vanish between readdir and stat */ }
@@ -1995,10 +2004,17 @@ export function workingSessions(state, now = Date.now(), alive = pidAlive, activ
   // A session works while a turn is in progress: from UserPromptSubmit (or a wake-up
   // from the chat) to Stop, or while its transcript is being written. Child sessions
   // count like any other; a headless worker also counts while its claude -p run is
-  // alive. A turn with no Stop for hours is stale.
-  const ids = new Set([...active].filter((id) => !state.sessions?.[id.split("/")[0]]?.ended));
+  // alive. A turn with no Stop for hours is stale. An `ended` session still counts
+  // when it wrote or started a turn after it ended: the app resumed it, and a late
+  // SessionEnd from the old process left the flag behind.
+  const ended = (id, at) => {
+    const session = state.sessions?.[id];
+    return Boolean(session?.ended) && !(at > (session.endedAt ?? Infinity) + ENDED_GRACE_MS);
+  };
+  const entries = active instanceof Map ? [...active] : [...active].map((id) => [id, 0]);
+  const ids = new Set(entries.filter(([id, at]) => !ended(id.split("/")[0], at)).map(([id]) => id));
   for (const id of Object.entries(state.meta?.turns ?? {})
-    .filter(([id, at]) => now - at < TURN_STALE_MS && !state.sessions?.[id]?.ended)
+    .filter(([id, at]) => now - at < TURN_STALE_MS && !ended(id, at))
     .map(([id]) => id)) ids.add(id);
   for (const [id, session] of Object.entries(state.sessions ?? {})) {
     if (session.headless && session.run && alive(session.run.pid)) ids.add(id);
@@ -2016,6 +2032,12 @@ export async function markTurn(sessionId, active, now = Date.now()) {
     const turns = (state.meta.turns ??= {});
     if (active) turns[sid] = now;
     else delete turns[sid];
+    // A new turn proves the session is alive: clear an `ended` left by a late SessionEnd.
+    const session = state.sessions[sid];
+    if (active && session?.ended && !session.headless) {
+      session.ended = false;
+      delete session.endedAt;
+    }
     for (const [id, at] of Object.entries(turns)) if (now - at >= TURN_STALE_MS) delete turns[id];
   });
 }
