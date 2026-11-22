@@ -117,11 +117,37 @@ test("working counts sessions and each running subagent", async () => {
   writeFileSync(path.join(project, "child-id", "subagents", "agent-1.jsonl"), "{}");
   writeFileSync(path.join(project, "child-id", "subagents", "agent-2.jsonl"), "{}");
   const ids = await bridgeMod.refreshActiveTranscripts(Date.now(), root);
-  assert.deepEqual([...ids].sort(), ["busy-id", "child-id/agent-1.jsonl", "child-id/agent-2.jsonl"]);
+  assert.deepEqual([...ids.keys()].sort(), ["busy-id", "child-id/agent-1.jsonl", "child-id/agent-2.jsonl"]);
   const state = { sessions: { "busy-id": {}, "child-id": {} }, meta: { turns: { "child-id": Date.now() } } };
   // The parent mid-turn plus each of its two running subagents, plus the busy session.
   assert.equal(bridgeMod.workingSessions(state, Date.now(), () => false, ids), 4);
   assert.equal(bridgeMod.workingSessions({ sessions: { "busy-id": { ended: true } }, meta: {} }, Date.now(), () => false, ids), 2);
+});
+
+test("a resumed session counts even if a late SessionEnd left it ended", async () => {
+  const bridgeMod = await import("../skills/telegram-action-notifier/scripts/lib/bridge.mjs");
+  const now = Date.now();
+  const endedAt = now - 3600_000;
+  const state = {
+    sessions: {
+      resumed: { ended: true, endedAt },
+      finished: { ended: true, endedAt: now - 30_000 },
+      "resumed-turn": { ended: true, endedAt },
+    },
+    meta: { turns: { "resumed-turn": now - 5000 } },
+  };
+  // The resumed session's subagent writes now; the finished one only wrote its last line at SessionEnd.
+  const active = new Map([["resumed/agent-1.jsonl", now - 1000], ["finished", now - 30_000 + 200]]);
+  assert.equal(bridgeMod.workingSessions(state, now, () => false, active), 2);
+});
+
+test("a new turn clears an ended flag left by a late SessionEnd", async () => {
+  const bridgeMod = await import("../skills/telegram-action-notifier/scripts/lib/bridge.mjs");
+  await bridgeMod.updateState((state) => { state.sessions["late-end"] = { ended: true, endedAt: Date.now() - 60_000 }; });
+  await bridgeMod.markTurn("late-end", true);
+  const session = (await bridgeMod.readState()).sessions["late-end"];
+  assert.equal(session.ended, false);
+  assert.equal(session.endedAt, undefined);
 });
 
 test("a session listens to the chat from its start, not only after its first turn", async () => {
