@@ -272,7 +272,8 @@ test("both: a small file goes to both; a Discord outage is reported as Discord's
   const calls = mockNetwork(t);
   const ok = await sendFile([make("a.txt")]);
   assert.equal(ok.code, 0, ok.err);
-  assert.deepEqual(uploads(calls).map((call) => call.host), ["api.telegram.org", "discord.com"]);
+  // The two destinations send in parallel: the order of the requests is not fixed.
+  assert.deepEqual(uploads(calls).map((call) => call.host).sort(), ["api.telegram.org", "discord.com"]);
   assert.match(ok.out, /telegram: sent as document\n {2}discord: sent as document/);
 
   mockNetwork(t, (call) => call.host === "discord.com" ? new Response("{}", { status: 500 }) : null);
