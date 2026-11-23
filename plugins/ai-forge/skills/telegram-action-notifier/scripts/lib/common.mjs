@@ -1,9 +1,10 @@
 // Shared configuration, host detection and Telegram Bot API access.
+import { openAsBlob } from "node:fs";
 import { chmod, mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
-import { discordCall, discordId } from "./discord.mjs";
+import { discordCall, discordId, uploadTimeoutMs } from "./discord.mjs";
 
 // Claude Code exports CLAUDE_PLUGIN_ROOT to plugin hooks; Codex sets PLUGIN_ROOT.
 export function isClaudeCode(env = process.env) {
@@ -229,18 +230,35 @@ export class TelegramError extends Error {
   }
 }
 
+/**
+ * `params.file` = { path, name, field, size } turns the call into a multipart upload:
+ * the file is streamed from disk (never read into memory or logged), the other
+ * params become form fields.
+ */
+async function uploadBody(params) {
+  const { file, ...fields } = params;
+  const form = new FormData();
+  for (const [key, value] of Object.entries(fields)) {
+    if (value == null) continue;
+    form.append(key, typeof value === "object" ? JSON.stringify(value) : String(value));
+  }
+  form.append(file.field, await openAsBlob(file.path), file.name);
+  return form;
+}
+
 /** Call a Bot API method. The token never appears in thrown errors. */
 export async function telegram(token, method, params = {}, { timeoutMs = 10_000 } = {}) {
   if (typeof token === "object" && token?.channel) return discordCall(token, method, params);
+  const upload = Boolean(params.file);
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  const timer = setTimeout(() => controller.abort(), upload ? Math.max(timeoutMs, uploadTimeoutMs(params.file.size)) : timeoutMs);
   try {
     const response = await globalThis.fetch(
       `https://api.telegram.org/bot${token}/${method}`,
       {
         method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(params),
+        ...(upload ? {} : { headers: { "content-type": "application/json" } }),
+        body: upload ? await uploadBody(params) : JSON.stringify(params),
         signal: controller.signal,
       },
     );

@@ -43,6 +43,7 @@ Script: `${CLAUDE_PLUGIN_ROOT}/skills/telegram-action-notifier/scripts/telegram-
 | `spawn --cwd <dir> --title <t> [--parent <title>] [--model <id>] [--effort <lvl>] [--permission-mode <mode>] "<brief>"` | Start a headless `claude -p` child. Prints `{"status":"started","sessionId"}` or, when the owner wants to confirm, `{"status":"awaiting-confirmation","requestId"}` |
 | `sessions --json` | Known sessions: id, title, project, status, waiting, topic, isBoss, parent, headless |
 | `post --to <title\|boss\|id> [--silent] [--buttons JSON] [--reply-to ID] "<text>"` | Post into a session's topic; prints `{"messageId","topicId"}`. Posting to a headless session's topic does not wake it; only the owner's messages do |
+| `send-file [--to <title\|boss\|id>] [--caption "<text>"] <path>...` | Send local files (image, video, audio, document) into a session's topic; prints which destination got which file. Telegram 50 MiB, Discord 20 MiB per file |
 | `edit --to <target> --message <id> [--buttons JSON\|--no-buttons] "<text>"` | Edit a posted message |
 | `alert "<text>"` | Post to General with sound, through smart delivery |
 | `claim-boss` | Make this session the boss explicitly (uses `CLAUDE_CODE_SESSION_ID`) |

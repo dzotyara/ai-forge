@@ -637,7 +637,14 @@ export async function editNotification(settings, method, params) {
   return result.value;
 }
 
-async function deliverOne(settings, ctx, parts, { silent, replyMarkup, replyTo, ping }) {
+/**
+ * Deliver one text-or-file message set to a single destination. `deliverOne` is
+ * also the entry for files (`file` = one local file; `parts[0]` is then its
+ * plain-text caption): the same topic lookup, recovery and reply bookkeeping.
+ */
+export const deliverTo = (settings, ctx, parts, options = {}) => deliverOne(settings, ctx, parts, options);
+
+async function deliverOne(settings, ctx, parts, { silent, replyMarkup, replyTo, ping, file = null }) {
   const discord = Boolean(settings.token?.channel);
   let threadId = settings.threadId || null;
   // The boss lives in General: no topic, plain (thread-less) messages.
@@ -655,14 +662,23 @@ async function deliverOne(settings, ctx, parts, { silent, replyMarkup, replyTo, 
   }
 
   const ids = [];
-  for (let index = 0; index < parts.length; index += 1) {
-    const params = {
-      chat_id: settings.chatId,
-      text: parts[index],
-      parse_mode: "HTML",
-      link_preview_options: { is_disabled: true },
-      disable_notification: Boolean(silent),
-    };
+  // A file is one message: Telegram's method follows the media kind, Discord has one.
+  const method = file ? (discord ? "sendFile" : file.method) : "sendMessage";
+  for (let index = 0; index < (file ? 1 : parts.length); index += 1) {
+    const params = file
+      ? {
+        chat_id: settings.chatId,
+        ...(parts[0] ? { caption: parts[0] } : {}),
+        file: { path: file.path, name: file.name, field: file.field, size: file.size },
+        disable_notification: Boolean(silent),
+      }
+      : {
+        chat_id: settings.chatId,
+        text: parts[index],
+        parse_mode: "HTML",
+        link_preview_options: { is_disabled: true },
+        disable_notification: Boolean(silent),
+      };
     if (threadId) params.message_thread_id = discord ? threadId : Number(threadId) || threadId;
     if (discord && ping && index === 0) params.ping = true; // Discord only: mention the owner
     if (replyMarkup && index === parts.length - 1) params.reply_markup = replyMarkup;
@@ -671,13 +687,13 @@ async function deliverOne(settings, ctx, parts, { silent, replyMarkup, replyTo, 
     }
     let message;
     try {
-      message = await sendHtml(settings.token, "sendMessage", params);
+      message = await sendHtml(settings.token, method, params);
     } catch (error) {
       if (discord && threadId && error.status === 404) {
         await updateState((state) => { delete state.sessions[ctx.sessionId].discordTopic; });
         threadId = await ensureTopic(settings, ctx);
         params.message_thread_id = threadId;
-        ids.push((await sendHtml(settings.token, "sendMessage", params)).message_id);
+        ids.push((await sendHtml(settings.token, method, params)).message_id);
         continue;
       }
       if (!useTopics || !threadId || !(threadGone(error) || topicClosed(error))) throw error;
@@ -699,7 +715,7 @@ async function deliverOne(settings, ctx, parts, { silent, replyMarkup, replyTo, 
       threadId = closed ? null : await ensureTopic(settings, ctx);
       if (threadId) params.message_thread_id = threadId;
       else delete params.message_thread_id;
-      message = await sendHtml(settings.token, "sendMessage", params);
+      message = await sendHtml(settings.token, method, params);
     }
     ids.push(message.message_id);
   }
