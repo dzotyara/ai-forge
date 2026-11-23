@@ -23,4 +23,16 @@ In Claude Code the user can answer in the session's Telegram topic. Their messag
 
 To post into a topic yourself (for example from an alerts session), run `node <this skill>/scripts/telegram-action-notifier.mjs post --to "<your session title>" "<text>"`. See the plugin README for `--buttons`, `--reply-to` and `edit`.
 
+## Sending files to the owner
+
+When the owner asks for a file ("send me the file", "send it to Discord", a video, a screenshot, a voice sample), do not paste its contents into the chat. Run:
+
+```
+node <this skill>/scripts/telegram-action-notifier.mjs send-file [--caption "<text>"] <path>...
+```
+
+For example: `send-file --caption "Render v3" ./out/render.mp4 ./out/contact-sheet.jpg`. The files go to this session's Telegram topic and/or Discord channel, whichever the owner chose in "Where to send"; there is nothing to configure and no way to pick the destination per call. Name every file: directories are refused, and so are missing or empty files (then nothing is sent). Images (`.jpg`, `.png`) arrive as images, `.mp4` as a playable video, `.mp3` and `.m4a` as audio, anything else as a document. The caption is optional and goes with the first file.
+
+Limits: Telegram takes 50 MiB per file (a photo 10 MiB, bigger images go as a document); Discord takes 20 MiB per file, 50 or 100 MiB on a server with Boost level 2 or 3. A file over the limit of one destination is not sent there, and the command says so. Read its output and tell the owner exactly what it says: which destination got which file, and which did not, with the reason. The command exits with 1 unless every file reached every destination. Never report a file as sent when it printed `NOT sent`; if a file is too big, offer to shrink or split it. Use `--to "<session title>"` only to send on behalf of another session, and `--json` for machine-readable output.
+
 If notification delivery is not configured, still ask the user in the agent session and mention that the plugin's `configure.mjs` must be run on the device.

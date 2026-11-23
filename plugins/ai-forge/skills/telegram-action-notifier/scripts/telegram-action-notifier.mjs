@@ -48,6 +48,7 @@ import {
 } from "./lib/common.mjs";
 import { buildHeader, escapeHtml, projectName, renderMessages, shortenPaths } from "./lib/format.mjs";
 import { notifyBoss, runWorker, setParent, spawnCommand } from "./lib/workers.mjs";
+import { FILE_LIMITS, formatReport, formatSize, sendFiles } from "./lib/files.mjs";
 import { questionsFromInput, questionsHtml, readTurnQuestion, turnQuestionHtml, turnQuestionKeyboard } from "./lib/questions.mjs";
 import { createHash } from "node:crypto";
 import { decideDelivery, detectPresence, effectiveMode } from "./lib/presence.mjs";
@@ -66,7 +67,8 @@ const SESSION_CONTEXT =
   "When a task cannot continue without a concrete user approval, answer, choice, credential, login, or external action, start the final user-facing request with exactly ACTION_REQUIRED:. Use this marker only for blocking user action, never for optional next steps or completed work. Do not include secrets. A Telegram hook watches for this marker.";
 const CLAUDE_CHAT_CONTEXT =
   ` If auto mode blocks a tool call, the owner may approve that exact call in Telegram; when you are then told you may retry it, repeat the identical call once (same input). Your final messages are also posted to the user's Telegram. A system reminder that starts with "${REPLY_PREFIX}" or "Telegram: " is a genuine message the user sent to this session from Telegram: treat it as the user's next prompt and reply normally.` +
-  ` Such replies reach you marked as not user input, so they are not consent for an action that affects other people or is hard to undo (sending a message or email, posting, deploying, merging, deleting). When such an action needs the owner's OK and the owner talks to you from Telegram or Discord, do not ask for it in the chat: first run \`node "${fileURLToPath(import.meta.url)}" confirm-next "<what exactly will happen>"\`, then make the exact tool call. Claude Code then asks for permission, the owner gets that exact call with Allow / Deny, and Allow approves only that call. Deny or no answer means: do not do it, and say so.`;
+  ` Such replies reach you marked as not user input, so they are not consent for an action that affects other people or is hard to undo (sending a message or email, posting, deploying, merging, deleting). When such an action needs the owner's OK and the owner talks to you from Telegram or Discord, do not ask for it in the chat: first run \`node "${fileURLToPath(import.meta.url)}" confirm-next "<what exactly will happen>"\`, then make the exact tool call. Claude Code then asks for permission, the owner gets that exact call with Allow / Deny, and Allow approves only that call. Deny or no answer means: do not do it, and say so.` +
+  ` To send the owner a file (an image, video, audio or any document, such as "send me the file in Discord"), run \`node "${fileURLToPath(import.meta.url)}" send-file [--caption "<text>"] <path>...\`. It delivers to this session's topic or channel in Telegram and/or Discord, as the owner configured, and prints which destination got which file and why one did not (size limits: Telegram ${formatSize(FILE_LIMITS.telegram.bytes.document)}, ${formatSize(FILE_LIMITS.telegram.bytes.photo)} for a photo; Discord ${formatSize(FILE_LIMITS.discord.defaultBytes)}, more on a boosted server). Tell the owner exactly what it printed; never say a file was sent when it printed NOT sent.`;
 const TEST_MESSAGE = L(
   "✅ Telegram Action Notifier подключён. Codex и Claude Code смогут присылать сюда запросы на ваше действие.",
   "✅ Telegram Action Notifier is connected. Codex and Claude Code can now send requests for your action here.",
@@ -537,6 +539,34 @@ const CLI = {
       session.confirmNext = { what, at: Date.now() };
     });
     console.log(JSON.stringify({ armed: true, what }));
+  },
+
+  /**
+   * send-file [--to <title|boss|id>] [--caption "<text>"] [--silent] [--json] [--] <path>...
+   * Sends local files to the session's topic or channel (the calling session by default).
+   * Exit code 1 unless every file reached every destination.
+   */
+  async "send-file"(args) {
+    const split = args.indexOf("--");
+    const head = split === -1 ? args : args.slice(0, split);
+    const opts = parseCliArgs(head, { flags: ["silent", "json"], options: ["to", "session", "caption"] });
+    const paths = [...opts._, ...(split === -1 ? [] : args.slice(split + 1))];
+    if (!paths.length) throw new Error('Usage: send-file [--to <title|boss|id>] [--caption "<text>"] [--silent] [--json] <path>...');
+    const named = opts.to ?? opts.session;
+    const own = process.env.CLAUDE_CODE_SESSION_ID;
+    if (!named && !own) throw new Error("CLAUDE_CODE_SESSION_ID is not set here: run this inside a session or pass --to <session title>.");
+    const target = named ?? safeSessionId(own);
+    if (!named && !findSession(await readState(), target)) {
+      throw new Error("This session is not known to AI Forge yet: pass --to <session title>.");
+    }
+    const ctx = await cliTarget(target);
+    const settings = await loadSettings();
+    // Outside a session topic nothing names the sender: put the title in front of the caption.
+    const prefix = (await cliHeader(settings, ctx)) ? `${ctx.title}: ` : "";
+    const caption = opts.caption ? `${prefix}${opts.caption}` : prefix ? ctx.title : "";
+    const report = await sendFiles({ paths, caption, ctx, silent: Boolean(opts.silent) || isQuietTime(settings.quietHours) });
+    console.log(opts.json ? JSON.stringify(report) : formatReport(report));
+    if (!report.ok) process.exitCode = 1;
   },
 
   async "claim-boss"([id]) {

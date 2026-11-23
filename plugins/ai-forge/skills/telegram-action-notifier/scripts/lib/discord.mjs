@@ -4,6 +4,7 @@
 // { secret, channel, owner[, guild, category] }; `telegram()` in common.mjs
 // hands such calls to `discordCall`, which maps them onto Discord REST.
 // Inbound Gateway events become Telegram-shaped updates (`discordUpdate`).
+import { openAsBlob } from "node:fs";
 import { readFile } from "node:fs/promises";
 import process from "node:process";
 
@@ -97,6 +98,19 @@ export async function discordApi(bot, method, route, body) {
   }).catch(() => { throw new Error(L("Discord: ошибка сети", "Discord: network error")); });
   if (!response.ok) throw Object.assign(new Error(`Discord: HTTP ${response.status}`), { status: response.status });
   return response.status === 204 ? null : response.json();
+}
+
+/** Time an upload may take: at least a minute, then 64 KiB/s for the file's size. */
+export const uploadTimeoutMs = (size) => Math.max(60_000, Math.ceil(Number(size || 0) / 65_536) * 1000);
+
+/** Multipart POST (a message with one attachment). The body streams from disk. */
+async function discordUpload(bot, route, form, size) {
+  const response = await fetch(`https://discord.com/api/v10${route}`, {
+    method: "POST", headers: { Authorization: `Bot ${bot.secret}` }, body: form,
+    signal: AbortSignal.timeout(uploadTimeoutMs(size)),
+  }).catch(() => { throw new Error(L("Discord: ошибка сети", "Discord: network error")); });
+  if (!response.ok) throw Object.assign(new Error(`Discord: HTTP ${response.status}`), { status: response.status });
+  return response.json();
 }
 
 // The bot's own user; it never changes for a token, so one request per process.
@@ -314,6 +328,18 @@ export async function discordCall(bot, method, params) {
             ? { message_reference: { message_id: replyId, fail_if_not_exists: false } } : {}),
         });
       }
+      return { message_id: ref(channel, message.id) };
+    }
+    case "sendFile": {
+      // One attachment, quiet like every other message; the caption is plain text, never a mention.
+      const { file } = params;
+      const form = new FormData();
+      form.append("payload_json", JSON.stringify({
+        content: params.caption ?? "", flags: 4 | 4096, allowed_mentions: allowedMentions,
+        attachments: [{ id: 0, filename: file.name }],
+      }));
+      form.append("files[0]", await openAsBlob(file.path), file.name);
+      const message = await discordUpload(bot, `/channels/${channel}/messages`, form, file.size);
       return { message_id: ref(channel, message.id) };
     }
     case "editMessageText":
