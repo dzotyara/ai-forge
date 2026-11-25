@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="640" viewBox="0 0 64 64">
+  <title>Aukalo</title>
+  <rect width="64" height="64" fill="#0B0E14"/>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path stroke="#34D399" stroke-width="7" d="M14 54 29 19.5M29 19.5 44 54M21 42.5h16"/>
+    <path stroke="#34D399" stroke-width="4.5" d="M34.5 13a8 8 0 0 1 8 8"/>
+    <path stroke="#FBBF24" stroke-width="4.5" d="M34.5 5.5a15.5 15.5 0 0 1 15.5 15.5"/>
+  </g>
+</svg>

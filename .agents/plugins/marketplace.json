@@ -1,14 +1,14 @@
 {
-  "name": "ai-forge",
+  "name": "aukalo",
   "interface": {
-    "displayName": "AI Forge"
+    "displayName": "Aukalo"
   },
   "plugins": [
     {
-      "name": "ai-forge",
+      "name": "aukalo",
       "source": {
         "source": "local",
-        "path": "./plugins/ai-forge"
+        "path": "./plugins/aukalo"
       },
       "policy": {
         "installation": "AVAILABLE",
