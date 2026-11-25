@@ -1,31 +1,31 @@
 <p align="center">
-  <img src="docs/banner.gif" alt="AI Forge" width="100%">
+  <img src="docs/banner.gif" alt="Aukalo" width="100%">
 </p>
 
 <h1 align="center">Ваши ИИ-агенты больше не ждут вас</h1>
 
 <p align="center">
-  <b>AI Forge превращает Discord и Telegram в пульт управления Claude Code.</b><br>
+  <b>Aukalo превращает Discord и Telegram в пульт управления Claude Code.</b><br>
   Разрешайте, отвечайте и направляйте каждую сессию с телефона, пока работа идёт на вашем Mac.
 </p>
 
 <p align="center">
-  <a href="#install-30"><img src="https://img.shields.io/badge/Easy%20Setup-Install-F97316?style=for-the-badge&amp;labelColor=0B0E14" alt="Быстрый старт"></a>
+  <a href="#install-30"><img src="https://img.shields.io/badge/Easy%20Setup-Install-059669?style=for-the-badge&amp;labelColor=0B0E14" alt="Быстрый старт"></a>
   <a href="#demo"><img src="https://img.shields.io/badge/%D0%9F%D0%BE%D1%81%D0%BC%D0%BE%D1%82%D1%80%D0%B5%D1%82%D1%8C-%D0%B2%20%D0%B4%D0%B5%D0%BB%D0%B5-5865F2?style=for-the-badge" alt="Посмотреть в деле"></a>
-  <a href="https://github.com/dzotyara/ai-forge"><img src="https://img.shields.io/github/stars/dzotyara/ai-forge?style=for-the-badge&color=fbbf24&label=%E2%AD%90%20Stars" alt="Stars"></a>
+  <a href="https://github.com/dzotyara/aukalo"><img src="https://img.shields.io/github/stars/dzotyara/aukalo?style=for-the-badge&color=fbbf24&label=%E2%AD%90%20Stars" alt="Stars"></a>
   <a href="https://boosty.to/dzotyara"><img src="https://img.shields.io/badge/Boosty-support-f15f2c?style=for-the-badge&logo=boosty&logoColor=white" alt="Поддержать на Boosty"></a>
 </p>
 
 <p align="center">
-  <a href="https://github.com/dzotyara/ai-forge/actions/workflows/test.yml"><img src="https://github.com/dzotyara/ai-forge/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
-  <img src="https://img.shields.io/badge/Claude%20Code-plugin-F97316?style=flat-square&amp;labelColor=0B0E14" alt="Claude Code plugin">
-  <img src="https://img.shields.io/badge/Codex-0.166%2B-F97316?style=flat-square&amp;labelColor=0B0E14" alt="Codex 0.166+">
-  <img src="https://img.shields.io/badge/Node-%E2%89%A522-F97316?style=flat-square&amp;labelColor=0B0E14" alt="Node 22+">
-  <img src="https://img.shields.io/badge/Runtime-local-F97316?style=flat-square&amp;labelColor=0B0E14" alt="Локальный запуск">
+  <a href="https://github.com/dzotyara/aukalo/actions/workflows/test.yml"><img src="https://github.com/dzotyara/aukalo/actions/workflows/test.yml/badge.svg" alt="Tests"></a>
+  <img src="https://img.shields.io/badge/Claude%20Code-plugin-059669?style=flat-square&amp;labelColor=0B0E14" alt="Claude Code plugin">
+  <img src="https://img.shields.io/badge/Codex-0.166%2B-059669?style=flat-square&amp;labelColor=0B0E14" alt="Codex 0.166+">
+  <img src="https://img.shields.io/badge/Node-%E2%89%A522-059669?style=flat-square&amp;labelColor=0B0E14" alt="Node 22+">
+  <img src="https://img.shields.io/badge/Runtime-local-059669?style=flat-square&amp;labelColor=0B0E14" alt="Локальный запуск">
 </p>
 
 <p align="center">
-  ⭐ <b>Если AI Forge экономит вам время, <a href="https://github.com/dzotyara/ai-forge">поставьте звезду</a>.</b> Так проект проще найти другим.
+  ⭐ <b>Если Aukalo экономит вам время, <a href="https://github.com/dzotyara/aukalo">поставьте звезду</a>.</b> Так проект проще найти другим.
 </p>
 
 <p align="center">
@@ -34,13 +34,15 @@
 
 ---
 
+<p align="center"><sub><b>Aukalo</b> — от <i>«ау!»</i>: так кричат в лесу, чтобы кто-то откликнулся. Агенты аукают, вы откликаетесь.</sub></p>
+
 ## Проблема
 
 Вы даёте Claude Code большую задачу и отходите. Через пять минут он упирается в *«Разрешить эту команду?»* и ждёт. Вы возвращаетесь через час, а сессия стоит, и кофе остыл.
 
 ## Решение
 
-AI Forge присылает каждый момент, где нужны вы, в чат, который у вас и так открыт, и сразу с кнопками. Одно нажатие, и агент снова работает.
+Aukalo присылает каждый момент, где нужны вы, в чат, который у вас и так открыт, и сразу с кнопками. Одно нажатие, и агент снова работает.
 
 <p align="center"><img src="docs/demo.gif" alt="Claude Code просит разрешение на команду, запрос приходит в Discord, одно нажатие Allow, и сборка с тестами проходят" width="100%"></p>
 
@@ -102,11 +104,11 @@ AI Forge присылает каждый момент, где нужны вы, �
 
 <table>
   <tr>
-    <td width="62%" align="center"><img src="docs/discord-rich-presence.png" alt="Профиль Discord, пока агенты работают: Playing AI Forge, агентов в работе: 2" width="100%"></td>
-    <td width="38%" align="center"><img src="docs/rich-presence.gif" alt="Картинка Rich Presence AI Forge: молот бьёт по наковальне" width="160"></td>
+    <td width="62%" align="center"><img src="docs/discord-rich-presence.png" alt="Профиль Discord, пока агенты работают: Playing Aukalo, агентов в работе: 2" width="100%"></td>
+    <td width="38%" align="center"><img src="docs/rich-presence.gif" alt="Картинка Rich Presence Aukalo: буква A аукает, дуги эха загораются по очереди" width="160"></td>
   </tr>
   <tr>
-    <td colspan="2"><sub>Пока агенты работают, профиль Discord показывает «Playing AI Forge» и сколько их, а тем, кто смотрит профиль, — кнопку на этот репозиторий.</sub></td>
+    <td colspan="2"><sub>Пока агенты работают, профиль Discord показывает «Playing Aukalo» и сколько их, а тем, кто смотрит профиль, — кнопку на этот репозиторий.</sub></td>
   </tr>
 </table>
 
@@ -121,14 +123,14 @@ AI Forge присылает каждый момент, где нужны вы, �
 
 ```mermaid
 flowchart LR
-  A["Сессия Claude Code / Codex"] -- "нужны вы" --> B["Хуки AI Forge"]
-  B --> C["Служба AI Forge на вашем Mac"]
+  A["Сессия Claude Code / Codex"] -- "нужны вы" --> B["Хуки Aukalo"]
+  B --> C["Служба Aukalo на вашем Mac"]
   C -- "сообщение с кнопками" --> D["Discord / Telegram"]
   D -- "Allow · ответ · текст" --> C
   C -- "решение или ваш текст" --> A
 ```
 
-Всё работает на вашем компьютере: небольшая фоновая служба и хуки плагина. Сервера AI Forge нет, аккаунт заводить не нужно. Токены ботов не покидают ваш компьютер.
+Всё работает на вашем компьютере: небольшая фоновая служба и хуки плагина. Сервера Aukalo нет, аккаунт заводить не нужно. Токены ботов не покидают ваш компьютер.
 
 ## Возможности
 
@@ -140,11 +142,11 @@ flowchart LR
 | Разрешить один раз то, что заблокировал авто-режим | ✅ | ✅ |
 | Подтверждение действий наружу (деплой, отправка, мерж) настоящим запросом разрешения | ✅ | ✅ |
 | Сессии присылают файлы: картинки, видео, аудио, документы | ✅ до 20 MiB (50 или 100 на сервере с бустами) | ✅ до 50 MiB (фото 10) |
-| Босс в общем канале, всегда на связи, фоновые сессии по команде | ✅ `⚒・forge` | ✅ General |
+| Босс в общем канале, всегда на связи, фоновые сессии по команде | ✅ `📣・aukalo` | ✅ General |
 | Подтверждение запросов Codex, в том числе с другого устройства | ✅ | уведомления |
 | Тишина по умолчанию, пинг только когда нужны вы | ✅ | ✅ |
 | `/status` `/away` `/here` `/mute` | ✅ slash-команды | ✅ |
-| «Playing AI Forge» с числом агентов в вашем профиле | ✅ | - |
+| «Playing Aukalo» с числом агентов в вашем профиле | ✅ | - |
 | Английский и русский | ✅ | ✅ |
 
 Можно включить Discord, Telegram или оба сразу. В режиме «оба» запрос виден в двух местах, а решение принимается один раз.
@@ -155,14 +157,14 @@ flowchart LR
 Нужны Claude Code и Node.js 22+. Умная доставка (определение, что вы за компьютером) работает на macOS, на других ОС считается, что вас нет.
 
 ```bash
-claude plugin marketplace add dzotyara/ai-forge
-claude plugin install ai-forge@ai-forge
+claude plugin marketplace add dzotyara/aukalo
+claude plugin install aukalo@aukalo
 ```
 
 Откройте панель настроек:
 
 ```bash
-node "$(ls -d ~/.claude/plugins/cache/ai-forge/ai-forge/*/ | tail -1)configure.mjs" --ui
+node "$(ls -d ~/.claude/plugins/cache/aukalo/aukalo/*/ | tail -1)configure.mjs" --ui
 ```
 
 Панель открывается на `127.0.0.1` и скрывает полные значения токенов. Локальный сервис использует их для авторизации в подключённых мессенджерах.
@@ -171,6 +173,22 @@ node "$(ls -d ~/.claude/plugins/cache/ai-forge/ai-forge/*/ | tail -1)configure.m
 
 Подключите Discord или Telegram в мастере и нажмите **Тестовое сообщение**, чтобы проверить доставку. Начните новую сессию Claude Code или выполните `/reload-plugins` в открытой. Для Codex см. [настройку Codex](#codex).
 
+<details>
+<summary><b>Переход с AI Forge</b></summary>
+
+Aukalo — новое имя AI Forge, начиная с версии 2.0.0. ID плагина изменился, поэтому установите его заново. Настройки и токены ботов остаются на месте (`~/.codex/telegram-action-notifier/config.json`).
+
+```bash
+claude plugin uninstall ai-forge@ai-forge
+claude plugin marketplace remove ai-forge
+claude plugin marketplace add dzotyara/aukalo
+claude plugin install aukalo@aukalo
+```
+
+Потом откройте панель настроек и нажмите **Обновить оформление**: бот, категория и общий канал получат новое имя и картинки. Rich Presence в профиле показывает имя вашего приложения Discord, поэтому переименуйте его в **Aukalo** в [Developer Portal](https://discord.com/developers/applications) (**General Information → Name**). Навыки теперь называются `/aukalo:boss`, `/aukalo:team` и `/aukalo:alerts`. Старые переменные `AI_FORGE_LANG` и `AI_FORGE_LISTEN` продолжают работать.
+
+</details>
+
 ### Discord
 
 1. Создайте приложение в [Discord Developer Portal](https://discord.com/developers/applications). На вкладке **Bot** включите **Message Content Intent** и нажмите **Save Changes**.
@@ -178,9 +196,9 @@ node "$(ls -d ~/.claude/plugins/cache/ai-forge/ai-forge/*/ | tail -1)configure.m
 3. В панели, раздел **Discord**: токен бота и свой ID пользователя (ПКМ по себе → Copy User ID, нужен режим разработчика). ID сервера - только если бот на нескольких серверах. Нажмите **Подключить Discord**.
 4. В **Уведомления → Куда отправлять** выберите **Discord** или **Telegram и Discord**, сохраните и нажмите **Тестовое сообщение**.
 
-Бот создаст категорию `AI Forge` и канал `⚒・forge`, а каналы сессий будет создавать сам. Каналы видят только вы и бот (плюс владельцы сервера через права Discord). Команды и кнопки бот принимает только от вас.
+Бот создаст категорию `Aukalo` и канал `📣・aukalo`, а каналы сессий будет создавать сам. Каналы видят только вы и бот (плюс владельцы сервера через права Discord). Команды и кнопки бот принимает только от вас.
 
-AI Forge может поставить фирменные изображения, если у бота ещё нет аватара или у сервера нет иконки. Ранее выбранные изображения сохраняются. Уведомления сервера по умолчанию переключатся на «Только @упоминания». [Обложка бота PNG](docs/discord-telegram-cover.png) · [Видео для описания в Telegram](docs/telegram-description.mp4) · [Иллюстрация Rich Presence](docs/rich-presence.gif)
+Aukalo может поставить фирменные изображения, если у бота ещё нет аватара или у сервера нет иконки. Ранее выбранные изображения сохраняются. Уведомления сервера по умолчанию переключатся на «Только @упоминания». [Обложка бота PNG](docs/discord-telegram-cover.png) · [Видео для описания в Telegram](docs/telegram-description.mp4) · [Иллюстрация Rich Presence](docs/rich-presence.gif)
 
 ### Telegram
 
@@ -206,9 +224,9 @@ AI Forge может поставить фирменные изображения
 node <plugin>/skills/telegram-action-notifier/scripts/telegram-action-notifier.mjs send-file --caption "Рендер v3" ./render.mp4
 ```
 
-Отправляются только названные вами файлы: папка, отсутствующий или пустой файл отклоняются, как и конфигурация AI Forge с токенами бота.
+Отправляются только названные вами файлы: папка, отсутствующий или пустой файл отклоняются, как и конфигурация Aukalo с токенами бота.
 
-**Босс.** Назовите любую сессию «Босс» - она займёт общий канал (`⚒・forge` или General в Telegram). Пишете туда задачу, Босс раскладывает её по проектным сессиям и запускает фоновые (`claude -p`) по кнопке «▶️ Запустить». Босс есть всегда: если приложение его закрыло, сообщение в общий канал разбудит его в фоне, а если Босса нет вовсе (удалён или пропал его разговор), служба сама запустит нового в фоне со стартовым промптом из навыка boss (в папке `bossCwd`, по умолчанию домашняя) и передаст ему ваше сообщение.
+**Босс.** Назовите любую сессию «Босс» - она займёт общий канал (`📣・aukalo` или General в Telegram). Пишете туда задачу, Босс раскладывает её по проектным сессиям и запускает фоновые (`claude -p`) по кнопке «▶️ Запустить». Босс есть всегда: если приложение его закрыло, сообщение в общий канал разбудит его в фоне, а если Босса нет вовсе (удалён или пропал его разговор), служба сама запустит нового в фоне со стартовым промптом из навыка boss (в папке `bossCwd`, по умолчанию домашняя) и передаст ему ваше сообщение.
 
 **Команды** (только от вас):
 
@@ -221,7 +239,7 @@ node <plugin>/skills/telegram-action-notifier/scripts/telegram-action-notifier.m
 
 ### Когда приходит уведомление
 
-AI Forge по умолчанию молчит, пока вы за компьютером, и пингует, только когда нужны вы:
+Aukalo по умолчанию молчит, пока вы за компьютером, и пингует, только когда нужны вы:
 
 | Событие | Вас нет | Вы за Mac |
 |---|---|---|
@@ -233,14 +251,14 @@ AI Forge по умолчанию молчит, пока вы за компьют
 
 ### Статус в Discord
 
-Пока работает фоновая служба, у бота статус «Playing AI Forge · в работе: N», где N - все агенты, которые работают прямо сейчас: сессии с идущим ходом или с транскриптом, обновлённым за последние 90 секунд, дочерние и фоновые сессии и каждый работающий субагент. Если на этом Mac открыт Discord, тот же статус появляется в вашем профиле: сколько сессий в работе, сколько времени запущено, и кнопка на этот репозиторий для тех, кто смотрит ваш профиль. Для этого в Discord должно быть включено **Настройки → Конфиденциальность активности → Share my activity**.
+Пока работает фоновая служба, у бота статус «Playing Aukalo · в работе: N», где N - все агенты, которые работают прямо сейчас: сессии с идущим ходом или с транскриптом, обновлённым за последние 90 секунд, дочерние и фоновые сессии и каждый работающий субагент. Если на этом Mac открыт Discord, тот же статус появляется в вашем профиле: сколько сессий в работе, сколько времени запущено, и кнопка на этот репозиторий для тех, кто смотрит ваш профиль. Для этого в Discord должно быть включено **Настройки → Конфиденциальность активности → Share my activity**. Профиль показывает имя вашего приложения Discord из Developer Portal, поэтому назовите его **Aukalo**.
 
 ### Несколько устройств и Codex
 
 Счёт идёт по всем вашим устройствам. Каждое устройство держит одну строку в приватном канале `📡・presence`: имя, сколько работает агентов Claude Code и сессий Codex, когда отчиталось. Служба на каждом устройстве складывает строки не старше двух минут, а статус показывает, где идёт работа, например «Claude Code · Codex».
 
 - Codex на этом же Mac считается по `~/.codex/sessions`.
-- На устройстве, где есть только Codex, настройте AI Forge с тем же Discord-ботом. Хуки Codex запустят там маленький фоновый репортёр. Он выключится сам через 30 минут без работы.
+- На устройстве, где есть только Codex, настройте Aukalo с тем же Discord-ботом. Хуки Codex запустят там маленький фоновый репортёр. Он выключится сам через 30 минут без работы.
 - Устройство, которое уснуло или ушло в офлайн, выпадает из счёта через две минуты.
 
 ## Настройки
@@ -264,7 +282,7 @@ AI Forge по умолчанию молчит, пока вы за компьют
 | `spawnConfirm` | `telegram` | `never` - запускать фоновые сессии без подтверждения |
 | `workerPermissions` | `telegram` | `auto` - фоновые сессии в режиме `auto` |
 | `workerDefaults` | Sonnet 5.5, medium, `acceptEdits` | модель, effort и режим фоновых сессий |
-| `discordActivity` | `AI Forge` | статус бота; `""` - без статуса |
+| `discordActivity` | `Aukalo` | статус бота; `""` - без статуса |
 | `discordRichPresence` | `true` | `false` - не показывать статус в вашем профиле |
 
 ## Безопасность
@@ -276,24 +294,24 @@ AI Forge по умолчанию молчит, пока вы за компьют
 
 ## Codex
 
-AI Forge отправляет в Discord или Telegram сообщения, когда Codex ждёт вашего действия. Отвечать нужно в Codex.
+Aukalo отправляет в Discord или Telegram сообщения, когда Codex ждёт вашего действия. Отвечать нужно в Codex.
 
 Если вы подтверждаете разрешения вручную, включите **Уведомления → Уведомления о проверках Codex**. В Codex 0.166+ Discord покажет кнопки **Allow** / **Deny**. Codex ждёт до 15 минут (`codexApprovalWaitSec`), затем спрашивает в своём окне. Служба Claude Code записывает решение в сообщение Discord, откуда его читает хук Codex, в том числе с другого устройства. Telegram только уведомляет. При автоматической проверке оставьте настройку выключенной: Codex вызывает один и тот же хук до выбора проверяющего.
 
 ```bash
-codex plugin marketplace add dzotyara/ai-forge --ref main
-codex plugin add ai-forge@ai-forge
+codex plugin marketplace add dzotyara/aukalo --ref main
+codex plugin add aukalo@aukalo
 ```
 
-Перезапустите Codex и проверьте хуки в **Settings → Hooks**. Если AI Forge там не появился, запустите `node <папка-установленного-ai-forge>/configure.mjs --register-codex-hooks`. Команда создаёт пользовательский `hooks.json`, только если такого файла ещё нет. Обновите список хуков и подтвердите их в Codex. Когда Codex начнёт показывать хуки самого плагина, удалите резервные записи, чтобы события не обрабатывались дважды. После обновления AI Forge проверьте, что резервные записи указывают на актуальную версию.
+Перезапустите Codex и проверьте хуки в **Settings → Hooks**. Если Aukalo там не появился, запустите `node <папка-установленного-aukalo>/configure.mjs --register-codex-hooks`. Команда создаёт пользовательский `hooks.json`, только если такого файла ещё нет. Обновите список хуков и подтвердите их в Codex. Когда Codex начнёт показывать хуки самого плагина, удалите резервные записи, чтобы события не обрабатывались дважды. После обновления Aukalo проверьте, что резервные записи указывают на актуальную версию.
 
 ## Разработка
 
 ```bash
-node --test plugins/ai-forge/tests/*.test.mjs
+node --test plugins/aukalo/tests/*.test.mjs
 ```
 
-Тесты не ходят в сеть: Telegram, Discord и сокет Discord подменяются. Версию поднимайте в обоих манифестах: `plugins/ai-forge/plugin.json` и `plugins/ai-forge/.claude-plugin/plugin.json`.
+Тесты не ходят в сеть: Telegram, Discord и сокет Discord подменяются. Версию поднимайте в обоих манифестах: `plugins/aukalo/plugin.json` и `plugins/aukalo/.claude-plugin/plugin.json`.
 
 ## Вопросы и ответы
 
@@ -301,7 +319,7 @@ node --test plugins/ai-forge/tests/*.test.mjs
 Бот слушается только вас, в вашем приватном сервере или группе. Одно разрешение действует ровно на один вызов: вы видите команду или параметры до нажатия. Ответ в чате никогда не считается согласием на деплой или сообщение другому человеку: для этого всегда приходит настоящий запрос разрешения.
 
 **Нужен сервер или подписка?**
-Нет. AI Forge - это плагин и небольшая фоновая служба на вашем компьютере. С Discord и Telegram она общается через вашего собственного бота.
+Нет. Aukalo - это плагин и небольшая фоновая служба на вашем компьютере. С Discord и Telegram она общается через вашего собственного бота.
 
 **Работает с Codex?**
 Да. Запросы Codex приходят в Discord с кнопками Allow / Deny, даже если Codex запущен на другом устройстве, а счётчик агентов учитывает все ваши устройства.
@@ -310,17 +328,17 @@ node --test plugins/ai-forge/tests/*.test.mjs
 Разрешения, ответы и Босс работают везде, где работает Claude Code. Определение присутствия (тишина, пока вы за компьютером) есть только на macOS, на других системах считается, что вас нет.
 
 **Сколько стоит?**
-Нисколько. AI Forge бесплатный, с открытым кодом.
+Нисколько. Aukalo бесплатный, с открытым кодом.
 
-## Поддержать AI Forge
+## Поддержать Aukalo
 
 - ⭐ **Поставьте звезду.** Это самый быстрый способ помочь другим найти проект.
-- ☕ **[Поддержите на Boosty](https://boosty.to/dzotyara).** Разовый донат или подписка дают мне больше времени на AI Forge и новые инструменты.
+- ☕ **[Поддержите на Boosty](https://boosty.to/dzotyara).** Разовый донат или подписка дают мне больше времени на Aukalo и новые инструменты.
 - 📣 **Расскажите** другу, который весь день сидит в Claude Code.
 - 🐞 **Откройте issue** с багом или идеей: от реального использования зависит, что будет дальше.
 
 ---
 
 <p align="center">
-  Понравилось? <a href="https://github.com/dzotyara/ai-forge">⭐ Поставьте звезду</a> или <a href="https://boosty.to/dzotyara">☕ поддержите на Boosty</a>
+  Понравилось? <a href="https://github.com/dzotyara/aukalo">⭐ Поставьте звезду</a> или <a href="https://boosty.to/dzotyara">☕ поддержите на Boosty</a>
 </p>

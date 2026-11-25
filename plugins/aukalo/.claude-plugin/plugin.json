@@ -1,0 +1,17 @@
+{
+  "name": "aukalo",
+  "version": "2.0.0",
+  "description": "Aukalo: Claude Code sessions in Discord and Telegram. A channel per session, approval and question buttons, replies from your phone, a Boss session and a Discord status.",
+  "author": {
+    "name": "dzotyara"
+  },
+  "repository": "https://github.com/dzotyara/aukalo",
+  "license": "MIT",
+  "keywords": [
+    "telegram",
+    "notifications",
+    "hooks",
+    "approval",
+    "topics"
+  ]
+}

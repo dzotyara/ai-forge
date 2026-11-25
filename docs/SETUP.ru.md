@@ -11,29 +11,29 @@
 Нужны [Claude Code](https://claude.com/claude-code) и Node.js 22 или новее (`node -v`).
 
 ```bash
-claude plugin marketplace add dzotyara/ai-forge
+claude plugin marketplace add dzotyara/aukalo
 ```
 
 ```bash
-claude plugin install ai-forge@ai-forge
+claude plugin install aukalo@aukalo
 ```
 
 ## 2. Откройте панель настроек
 
 ```bash
-node "$(ls -d ~/.claude/plugins/cache/ai-forge/ai-forge/*/ | tail -1)configure.mjs" --ui
+node "$(ls -d ~/.claude/plugins/cache/aukalo/aukalo/*/ | tail -1)configure.mjs" --ui
 ```
 
 Откроется локальная страница на `127.0.0.1` с одноразовым ключом в ссылке. Если ничего ещё не настроено, сверху будет мастер **First-time setup**. Выберите **Discord**, **Telegram** или **Both**. Открыть мастер снова можно кнопкой **Setup wizard** под заголовком. Язык переключается в разделе **Notifications → Language**.
 
 ## 3а. Discord
 
-1. **Создайте приложение.** В [Discord Developer Portal](https://discord.com/developers/applications) нажмите **New Application** и назовите его, например, *AI Forge*.
+1. **Создайте приложение.** В [Discord Developer Portal](https://discord.com/developers/applications) нажмите **New Application** и назовите его, например, *Aukalo*.
 2. **Получите токен бота.** Откройте вкладку **Bot**, нажмите **Reset Token** и скопируйте токен.
 3. **Включите Message Content.** На той же вкладке включите **Message Content Intent** и нажмите **Save Changes**. Без этого бот видит кнопки и slash-команды, но не ваши текстовые ответы.
 4. **Добавьте бота на сервер.** Вставьте токен в мастер: он соберёт ссылку-приглашение с нужными правами (Manage Channels, Manage Server, View Channel, Send Messages, Read Message History, Add Reactions). Откройте её, выберите свой сервер и нажмите **Authorize**. Сервера нет? Нажмите **+** в Discord и создайте свой, только для себя.
 5. **Скопируйте свой ID.** В Discord откройте **Настройки → Расширенные** и включите **Режим разработчика**. Затем правый клик по себе → **Копировать ID пользователя**.
-6. **Подключите.** Вставьте ID и нажмите **Connect Discord**. Бот создаст категорию `AI Forge` и канал `⚒・forge`. Если аватар бота и иконка сервера пустые, он поставит свои, а уведомления сервера переключит на «Только @упоминания».
+6. **Подключите.** Вставьте ID и нажмите **Connect Discord**. Бот создаст категорию `Aukalo` и канал `📣・aukalo`. Если аватар бота и иконка сервера пустые, он поставит свои, а уведомления сервера переключит на «Только @упоминания».
 
 ## 3б. Telegram
 
@@ -54,15 +54,15 @@ node "$(ls -d ~/.claude/plugins/cache/ai-forge/ai-forge/*/ | tail -1)configure.m
 
 - **Язык:** **Notifications → Language** переключает бота и панель между английским и русским.
 - **Тихие часы:** **Notifications → Quiet hours**, например 23:00–08:00.
-- **Босс:** назовите любую сессию Claude Code «Boss» или «Босс», и она займёт `⚒・forge`. Если Босса нет, первое сообщение туда создаст его.
+- **Босс:** назовите любую сессию Claude Code «Boss» или «Босс», и она займёт `📣・aukalo`. Если Босса нет, первое сообщение туда создаст его.
 - **Codex:** поставьте плагин и в Codex. Его запросы разрешений приходят в Discord с кнопками Allow / Deny.
 
 ```bash
-codex plugin marketplace add dzotyara/ai-forge --ref main
+codex plugin marketplace add dzotyara/aukalo --ref main
 ```
 
 ```bash
-codex plugin add ai-forge@ai-forge
+codex plugin add aukalo@aukalo
 ```
 
 ## Если что-то не работает
@@ -71,7 +71,7 @@ codex plugin add ai-forge@ai-forge
 |---|---|
 | «Discord Gateway: 4014» или «Message Content Intent выключен» в панели | Включите **Message Content Intent** в Developer Portal → Bot, нажмите **Save Changes**, потом снова **Connect Discord** |
 | Бот не создал каналы | Ему нужно право **Manage Channels** на сервере: откройте ссылку-приглашение из мастера ещё раз |
-| У бота или сервера старая картинка | Нажмите **Refresh look** в разделе **Service** панели: бот, сервер и группа Telegram получат текущее оформление AI Forge |
+| У бота или сервера старая картинка | Нажмите **Refresh look** в разделе **Service** панели: бот, сервер и группа Telegram получат текущее оформление Aukalo |
 | Нет иконки сервера | Дайте боту право **Manage Server** или поставьте иконку сами |
 | Telegram: «Групп не нашлось» | После добавления бота напишите в группе новое сообщение и снова нажмите **Find the group** |
 | «Сессия сейчас работает» в чате | У сессии идёт ход: она увидит сообщение на следующем шаге (при следующем вызове инструмента) |
@@ -79,4 +79,4 @@ codex plugin add ai-forge@ai-forge
 | Кнопки ничего не делают | Проверьте, что служба работает: раздел **Service** в панели или кнопка **Restart** |
 | Под сообщением «решите в приложении» | Никто не нажал кнопку до конца ожидания (`approvalWaitSec`), но окно в приложении по-прежнему работает |
 
-Не помогло? [Откройте issue](https://github.com/dzotyara/ai-forge/issues) и приложите, что показывает раздел **Service** в панели.
+Не помогло? [Откройте issue](https://github.com/dzotyara/aukalo/issues) и приложите, что показывает раздел **Service** в панели.

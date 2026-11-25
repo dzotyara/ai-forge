@@ -11,4 +11,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: node --test --test-timeout=60000 plugins/ai-forge/tests/*.test.mjs
+      - run: node --test --test-timeout=60000 plugins/aukalo/tests/*.test.mjs

@@ -1,13 +1,13 @@
 {
-  "name": "ai-forge",
-  "description": "AI Forge: Claude Code sessions in Discord and Telegram",
+  "name": "aukalo",
+  "description": "Aukalo: Claude Code sessions in Discord and Telegram",
   "owner": {
     "name": "dzotyara"
   },
   "plugins": [
     {
-      "name": "ai-forge",
-      "source": "./plugins/ai-forge",
+      "name": "aukalo",
+      "source": "./plugins/aukalo",
       "description": "Claude Code sessions in Discord and Telegram: a channel per session, approval and question buttons, replies from your phone."
     }
   ]
